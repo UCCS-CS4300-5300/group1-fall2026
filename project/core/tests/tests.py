@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from .models import StarterItem
+from core.models import StarterItem
 @pytest.mark.django_db
 def test_starter_item_string_representation():
     item = StarterItem.objects.create(title="Example")
