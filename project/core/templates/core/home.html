@@ -28,6 +28,10 @@
     </style>
 </head>
 <body>
+    <form method="post" action="{% url 'core:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+    </form>
     <small>CS 4300 / 5300</small>
     <h1>Your project starts here.</h1>
     <p>

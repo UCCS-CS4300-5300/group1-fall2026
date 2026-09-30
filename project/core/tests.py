@@ -1,19 +1,41 @@
 import pytest
+from django.contrib.auth.models import User
+from django.urls import reverse
+import pytest
 from django.urls import reverse
 from .models import StarterItem
+
+
+@pytest.fixture
+def logged_in_client(client):
+    user = User.objects.create_user("sam", password="pw12345!")
+    client.force_login(user)
+    return client
+
+
 @pytest.mark.django_db
 def test_starter_item_string_representation():
     item = StarterItem.objects.create(title="Example")
     assert str(item) == "Example"
+
+
 @pytest.mark.django_db
-def test_home_page_loads(client):
-    response = client.get(reverse("core:home"))
+def test_home_page_loads(logged_in_client):
+    response = logged_in_client.get(reverse("core:home"))
     assert response.status_code == 200
     assert b"Your project starts here." in response.content
+
+
 @pytest.mark.django_db
-def test_home_page_displays_only_active_items(client):
+def test_home_page_displays_only_active_items(logged_in_client):
     StarterItem.objects.create(title="Visible item", is_active=True)
     StarterItem.objects.create(title="Hidden item", is_active=False)
-    response = client.get(reverse("core:home"))
+    response = logged_in_client.get(reverse("core:home"))
     assert b"Visible item" in response.content
     assert b"Hidden item" not in response.content
+    
+@pytest.mark.django_db
+def logout_redirect_properly(logged_in_client):
+    response = logged_in_client.get(reverse("core:login"))
+    assert response.status_code == 302
+    

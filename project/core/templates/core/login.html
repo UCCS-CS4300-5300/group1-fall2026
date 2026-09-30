@@ -70,6 +70,15 @@
         background: var(--error-bg);
         border-radius: 6px;
     }
+
+    .form-notice {
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        color: var(--accent-dark);
+        background: #e8f0f6;
+        border-radius: 6px;
+    }
+    
 </style>
 {% endblock %}
 
@@ -77,6 +86,10 @@
 <div class="login-card">
     <h1>Log in</h1>
     <p class="lead">Enter your username and password to continue.</p>
+
+    {% for message in messages %}
+        <div class="form-notice" role="status">{{ message }}</div>
+    {% endfor %}
 
     {% if form.non_field_errors %}
         <div class="form-error" role="alert">
