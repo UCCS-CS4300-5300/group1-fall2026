@@ -78,7 +78,13 @@
         background: #e8f0f6;
         border-radius: 6px;
     }
-    
+
+    .field-error {
+        margin: .3rem 0 0;
+        color: var(--error-text);
+        font-size: .9rem;
+    }
+
 </style>
 {% endblock %}
 
@@ -105,11 +111,17 @@
         <div class="field">
             {{ form.username.label_tag }}
             {{ form.username }}
+            {% for error in form.username.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
         </div>
 
         <div class="field">
             {{ form.password.label_tag }}
             {{ form.password }}
+            {% for error in form.password.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
         </div>
 
         <input type="hidden" name="next" value="{{ next }}">
