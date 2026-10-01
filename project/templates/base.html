@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Project{% endblock %}</title>
+    <style>
+        :root {
+            --ink: #1c2430;
+            --muted: #5b6673;
+            --paper: #f5f6f8;
+            --surface: #ffffff;
+            --line: #d5dae1;
+            --accent: #1f5f8b;
+            --accent-dark: #174a6d;
+            --error-bg: #fdecec;
+            --error-text: #a12222;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, sans-serif;
+            line-height: 1.5;
+            color: var(--ink);
+            background: var(--paper);
+        }
+
+        main {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

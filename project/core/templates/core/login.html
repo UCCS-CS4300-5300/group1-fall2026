@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Log in{% endblock %}
+
+{% block extra_head %}
+<style>
+    .login-card {
+        max-width: 400px;
+        margin: 2rem auto 0;
+        padding: 2rem;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+    }
+
+    .login-card h1 {
+        margin: 0 0 .25rem;
+        font-size: 1.6rem;
+    }
+
+    .login-card .lead {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+    }
+
+    .field {
+        margin-bottom: 1rem;
+    }
+
+    .field label {
+        display: block;
+        margin-bottom: .3rem;
+        font-weight: 600;
+    }
+
+    .field input {
+        width: 100%;
+        padding: .6rem .7rem;
+        font: inherit;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+    }
+
+    .field input:focus-visible,
+    .btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .btn {
+        width: 100%;
+        padding: .7rem;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: var(--accent-dark);
+    }
+
+    .form-error {
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        color: var(--error-text);
+        background: var(--error-bg);
+        border-radius: 6px;
+    }
+
+    .form-notice {
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        color: var(--accent-dark);
+        background: #e8f0f6;
+        border-radius: 6px;
+    }
+
+    .field-error {
+        margin: .3rem 0 0;
+        color: var(--error-text);
+        font-size: .9rem;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <h1>Log in</h1>
+    <p class="lead">Enter your username and password to continue.</p>
+
+    {% for message in messages %}
+        <div class="form-notice" role="status">{{ message }}</div>
+    {% endfor %}
+
+    {% if form.non_field_errors %}
+        <div class="form-error" role="alert">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% for error in form.username.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.password.label_tag }}
+            {{ form.password }}
+            {% for error in form.password.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn">Log in</button>
+    </form>
+</div>
+{% endblock %}
