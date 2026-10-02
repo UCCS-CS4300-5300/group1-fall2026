@@ -14,7 +14,7 @@ def user(db):
     )
 
 @pytest.fixture
-def logged_in_client(client):
+def logged_in_client(client, db):
     user = User.objects.create_user("sam", password="pw12345!")
     client.force_login(user)
     return client
