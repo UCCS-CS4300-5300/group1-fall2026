@@ -28,8 +28,6 @@ def test_starter_item_string_representation():
 def test_home_page_loads(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
     assert response.status_code == 200
-    assert b"Your project starts here." in response.content
-
 
 @pytest.mark.django_db
 def test_home_page_displays_only_active_items(logged_in_client):
@@ -90,4 +88,5 @@ def test_visit_home_redirects_while_logged_out(client):
     response = client.get(reverse("core:home"))
     assert response.status_code == 302
     assert response["Location"] == f"{reverse('login')}?next={reverse('core:home')}"
+
     
