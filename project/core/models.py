@@ -1,4 +1,7 @@
 from django.db import models
+from .models_repkin import Repkin
+
+
 class StarterItem(models.Model):
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True)
