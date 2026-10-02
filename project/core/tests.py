@@ -14,7 +14,7 @@ def user(db):
     )
 
 @pytest.fixture
-def logged_in_client(client, user):
+def logged_in_client(client, db):
     client.force_login(user)
     return client
 
@@ -94,7 +94,7 @@ def test_visit_home_redirects_while_logged_out(client):
     response = client.get(reverse("core:home"))
     assert response.status_code == 302
     assert response["Location"] == f"{reverse('login')}?next={reverse('core:home')}"
-
+    
 @pytest.mark.django_db
 def test_logout_then_home_redirects(logged_in_client):
     logged_in_client.post(reverse("core:logout"))
