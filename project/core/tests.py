@@ -15,10 +15,10 @@ def user(db):
 
 @pytest.fixture
 def logged_in_client(client, db):
-    user = User.objects.create_user("sam", password="pw12345!")
     client.force_login(user)
     return client
 
+# TESTS BELOW THIS LINE ============================#
 @pytest.mark.django_db
 def test_starter_item_string_representation():
     item = StarterItem.objects.create(title="Example")
@@ -40,9 +40,9 @@ def test_home_page_displays_only_active_items(logged_in_client):
     assert b"Hidden item" not in response.content
     
 @pytest.mark.django_db
-def logout_redirect_properly(logged_in_client):
-    response = logged_in_client.get(reverse("core:login"))
-    assert response.status_code == 302
+def test_logout_redirect_properly(logged_in_client):
+    response = logged_in_client.get(reverse("login"))
+    assert response.status_code == 200
 
 @pytest.mark.django_db
 def test_valid_login_redirects_home(client, user):
@@ -68,26 +68,49 @@ def test_incorrect_password_not_permitted_to_login(client):
     assert b"form-error" in response.content
     assert "_auth_user_id" not in client.session
 
+@pytest.mark.django_db
 def test_not_real_user_not_permitted_to_login(client, db):
     response = client.post(reverse("login"), {"username": "ghost", "password": f"{PASSWORD}"})
     assert response.status_code == 200
     assert b'role="alert"' in response.content
     assert "_auth_user_id" not in client.session
-    
+
+@pytest.mark.django_db
 def test_no_username_not_permitted_to_login(client, db):
     response = client.post(reverse("login"), {"username": "", "password": PASSWORD})
     assert response.status_code == 200
     assert "username" in response.context["form"].errors
     assert "_auth_user_id" not in client.session
-    
+
+@pytest.mark.django_db
 def test_no_username_not_permitted_to_login_produces_error_message_visual(client, db):
     response = client.post(reverse("login"), {"username": "", "password": PASSWORD})
     assert response.status_code == 200
     assert b'class="field-error"' in response.content
     assert "_auth_user_id" not in client.session
-    
+
+@pytest.mark.django_db  
 def test_visit_home_redirects_while_logged_out(client):
     response = client.get(reverse("core:home"))
     assert response.status_code == 302
     assert response["Location"] == f"{reverse('login')}?next={reverse('core:home')}"
+    
+@pytest.mark.django_db
+def test_logout_then_home_redirects(logged_in_client):
+    logged_in_client.post(reverse("core:logout"))
+    response = logged_in_client.get(reverse("core:home"))
+    assert response.status_code == 302
+    assert response["Location"] == "/login/?next=/"
+
+@pytest.mark.django_db
+def test_logout_get_not_allowed(logged_in_client):
+    response = logged_in_client.get(reverse("core:logout"))
+    assert response.status_code == 405
+    assert "_auth_user_id" in logged_in_client.session
+
+@pytest.mark.django_db
+def test_logout_message(logged_in_client):
+    response = logged_in_client.post(reverse("core:logout"), follow=True)
+    messages = [str(m) for m in response.context["messages"]]
+    assert messages == ["You've been logged out."]
     
