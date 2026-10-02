@@ -4,7 +4,8 @@ from app import project_summary, risk_level
 def test_project_summary_contains_name_and_description():
     summary = project_summary()
     assert "Trailhead" in summary
-    assert "team project planning tool" in summary
+    assert "coordinate work" in summary
+    assert "surface blockers" in summary
 
 
 def test_risk_level_low_for_zero_blockers():
