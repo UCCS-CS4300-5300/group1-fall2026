@@ -4,7 +4,6 @@ from django.urls import reverse
 import pytest
 from django.urls import reverse
 from .models import StarterItem
-
 PASSWORD = "pw12345!"
 
 @pytest.fixture
@@ -28,15 +27,12 @@ def test_starter_item_string_representation():
 def test_home_page_loads(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
     assert response.status_code == 200
-
 @pytest.mark.django_db
-def test_home_page_displays_only_active_items(logged_in_client):
-    StarterItem.objects.create(title="Visible item", is_active=True)
-    StarterItem.objects.create(title="Hidden item", is_active=False)
+def test_home_page_renders_repkin_gif(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
-    assert b"Visible item" in response.content
-    assert b"Hidden item" not in response.content
-    
+    content = response.content.decode()
+    assert ".gif" in content
+
 @pytest.mark.django_db
 def test_logout_redirect_properly(logged_in_client):
     response = logged_in_client.get(reverse("login"))
@@ -51,7 +47,7 @@ def test_valid_login_redirects_home(client, user):
     assert response["Location"] == "/"
     assert client.session["_auth_user_id"] == str(user.pk)
 
-@pytest.mark.django_db 
+@pytest.mark.django_db
 def test_logout_clears_session(client, user):
     client.force_login(user)
     response = client.post(reverse("core:logout"))
@@ -87,12 +83,12 @@ def test_no_username_not_permitted_to_login_produces_error_message_visual(client
     assert b'class="field-error"' in response.content
     assert "_auth_user_id" not in client.session
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 def test_visit_home_redirects_while_logged_out(client):
     response = client.get(reverse("core:home"))
     assert response.status_code == 302
     assert response["Location"] == f"{reverse('login')}?next={reverse('core:home')}"
-    
+
 @pytest.mark.django_db
 def test_logout_then_home_redirects(logged_in_client):
     logged_in_client.post(reverse("core:logout"))
@@ -111,7 +107,3 @@ def test_logout_message(logged_in_client):
     response = logged_in_client.post(reverse("core:logout"), follow=True)
     messages = [str(m) for m in response.context["messages"]]
     assert messages == ["You've been logged out."]
-    
-
-
-    
