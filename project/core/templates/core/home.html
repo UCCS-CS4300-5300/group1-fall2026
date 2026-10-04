@@ -32,18 +32,26 @@
         }
     </style>
 
-     <form method="post" action="{% url 'core:logout' %}">
-        {% csrf_token %}
-        <button type="submit">Log out</button>
-    </form>
+     
 
 </head>
 <body>
-<img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
-<img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
+    <form method="post" action="{% url 'core:logout' %}">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
 
-        <main>
-            {% block content %}{% endblock %}
-        </main
-    </body>
+    <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
+    <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
+
+    <ul class="starter-items">
+        {% for item in items %}
+            <li>{{item.title }}</li>
+        {% endfor %}
+    </ul>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
 </html>

@@ -4,7 +4,9 @@ from django.urls import reverse
 import pytest
 from django.urls import reverse
 from .models import StarterItem
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 PASSWORD = "pw12345!"
 
 @pytest.fixture
@@ -14,7 +16,7 @@ def user(db):
     )
 
 @pytest.fixture
-def logged_in_client(client, db):
+def logged_in_client(client, user):
     client.force_login(user)
     return client
 
