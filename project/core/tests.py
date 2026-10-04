@@ -44,16 +44,65 @@ def logout_redirect_properly(logged_in_client):
     response = logged_in_client.get(reverse("core:login"))
     assert response.status_code == 302
 
+# When Firebase confirms a person, Django should remember them without another password.
 @pytest.mark.django_db
-def test_valid_login_redirects_home(client, user):
+def test_firebase_token_creates_django_session(client, monkeypatch):
+    monkeypatch.setattr(
+        "core.views.verify_firebase_id_token",
+        lambda token: {"uid": "firebase-uid-123", "email": "sam@example.com"},
+    )
+
+    response = client.post(
+        reverse("core:firebase_session"),
+        {"idToken": "signed-firebase-token"},
+    )
+
+    user = User.objects.get(username="firebase_firebase-uid-123")
+    assert response.status_code == 200
+    assert response.json() == {"redirectUrl": "/"}
+    assert client.session["_auth_user_id"] == str(user.pk)
+    assert user.email == "sam@example.com"
+    assert not user.has_usable_password()
+
+
+# If Firebase does not provide the account's unique number, do not sign them in.
+@pytest.mark.django_db
+def test_firebase_token_without_uid_is_rejected(client, monkeypatch):
+    monkeypatch.setattr(
+        "core.views.verify_firebase_id_token",
+        lambda token: {"email": "sam@example.com"},
+    )
+
+    response = client.post(
+        reverse("core:firebase_session"), {"idToken": "signed-firebase-token"}
+    )
+
+    assert response.status_code == 401
+    assert "_auth_user_id" not in client.session
+
+
+# Check that the login page asks for the email and password Firebase expects.
+@pytest.mark.django_db
+def test_login_page_uses_firebase_email_form(client):
+    response = client.get(reverse("login"))
+
+    assert response.status_code == 200
+    assert b'id="firebase-login-form"' in response.content
+    assert b'name="email"' in response.content
+    assert b'name="username"' not in response.content
+
+
+# Check that someone cannot skip Firebase by sending a password straight to Django.
+@pytest.mark.django_db
+def test_django_password_login_is_disabled(client, user):
     response = client.post(
         reverse("login"), {"username": "sam", "password": PASSWORD}
     )
-    assert response.status_code == 302
-    assert response["Location"] == "/"
-    assert client.session["_auth_user_id"] == str(user.pk)
 
-@pytest.mark.django_db 
+    assert response.status_code == 405
+    assert "_auth_user_id" not in client.session
+
+@pytest.mark.django_db
 def test_logout_clears_session(client, user):
     client.force_login(user)
     response = client.post(reverse("core:logout"))
@@ -61,31 +110,6 @@ def test_logout_clears_session(client, user):
     assert response["Location"] == reverse("login")
     assert "_auth_user_id" not in client.session
 
-@pytest.mark.django_db
-def test_incorrect_password_not_permitted_to_login(client):
-    response = client.post(reverse("login"), {"username": "sam", "password": "wrong-password"})
-    assert response.status_code == 200
-    assert b"form-error" in response.content
-    assert "_auth_user_id" not in client.session
-
-def test_not_real_user_not_permitted_to_login(client, db):
-    response = client.post(reverse("login"), {"username": "ghost", "password": f"{PASSWORD}"})
-    assert response.status_code == 200
-    assert b'role="alert"' in response.content
-    assert "_auth_user_id" not in client.session
-    
-def test_no_username_not_permitted_to_login(client, db):
-    response = client.post(reverse("login"), {"username": "", "password": PASSWORD})
-    assert response.status_code == 200
-    assert "username" in response.context["form"].errors
-    assert "_auth_user_id" not in client.session
-    
-def test_no_username_not_permitted_to_login_produces_error_message_visual(client, db):
-    response = client.post(reverse("login"), {"username": "", "password": PASSWORD})
-    assert response.status_code == 200
-    assert b'class="field-error"' in response.content
-    assert "_auth_user_id" not in client.session
-    
 def test_visit_home_redirects_while_logged_out(client):
     response = client.get(reverse("core:home"))
     assert response.status_code == 302

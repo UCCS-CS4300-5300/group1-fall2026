@@ -1,1 +1,6 @@
 project/core/migrations/0002_repkin.py
+
+# Keep the private Firebase key out of Git uploads.
+*firebase-adminsdk*.json
+firebase-service-account*.json
+serviceAccountKey.json
