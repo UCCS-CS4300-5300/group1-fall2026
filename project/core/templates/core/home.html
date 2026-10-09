@@ -30,6 +30,56 @@
             width: 100px; /* Adjust the size as needed */
             height: auto;
         }
+        /* Keep the sample-data controls readable over the workout background. */
+        .practice-panel {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 5;
+            box-sizing: border-box;
+            width: min(22rem, calc(100vw - 2rem));
+            max-height: calc(100dvh - 2rem);
+            overflow-y: auto;
+            padding: 1rem;
+            color: #f7f7f2;
+            background: rgba(22, 31, 29, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            font-family: system-ui, sans-serif;
+        }
+        .practice-panel h1 {
+            margin: 0 0 0.75rem;
+            font-size: 1.2rem;
+        }
+        .practice-panel label,
+        .practice-panel input,
+        .practice-panel button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .practice-panel input,
+        .practice-panel button {
+            min-height: 2.5rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            font: inherit;
+        }
+        .practice-panel button {
+            color: #10211c;
+            background: #b8e2c5;
+            border: 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .practice-panel button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+        .practice-result {
+            min-height: 1.5em;
+            margin: 0.75rem 0 0;
+        }
     </style>
 
      <form method="post" action="{% url 'core:logout' %}">
@@ -44,7 +94,19 @@
 
 
         <main>
-            {% block content %}{% endblock %}
+            <!-- Let the signed-in user save and reload one sample rep count. -->
+            <section class="practice-panel" aria-labelledby="practice-title">
+                <h1 id="practice-title">Practice data check</h1>
+                <form id="practice-data-form" method="post" action="{% url 'core:practice_data' %}">
+                    {% csrf_token %}
+                    <label for="practice-pushups">Sample push-up count</label>
+                    <input id="practice-pushups" name="practice_pushups" type="number" min="0" max="10000" value="7" required>
+                    <button type="submit">Save sample</button>
+                </form>
+                <button id="load-practice-data" type="button">Load saved value</button>
+                <p id="practice-result" class="practice-result" role="status" aria-live="polite">Nothing saved yet.</p>
+            </section>
         </main>
+        <script src="{% static 'core/practice_data.js' %}" defer></script>
     </body>
 </html>
