@@ -1,3 +1,4 @@
+from .models_repkin import Repkin
 from django.shortcuts import render
 from .models import StarterItem
 from django.contrib.auth.decorators import login_required
@@ -7,10 +8,14 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
 from .forms import AccountCreationForm
 
+
+DEFAULT_REPKIN = {"mood": "content", "color": "green"}
+
 @login_required
 def home(request):
+    repkin, _ = Repkin.objects.get_or_create(owner=request.user, defaults=DEFAULT_REPKIN)
     items = StarterItem.objects.filter(is_active=True).order_by("title")
-    return render(request, "core/home.html", {"items": items})
+    return render(request, "core/home.html", {"items": items, "repkin": repkin})
 
 @require_POST
 def logout_view(request):

@@ -15,6 +15,8 @@ def logged_in_client(client, user):
     client.force_login(user)
     return client
 
+
+
 # TESTS BELOW THIS LINE ============================#
 @pytest.mark.django_db
 def test_starter_item_string_representation():
