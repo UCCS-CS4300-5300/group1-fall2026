@@ -40,7 +40,7 @@
             {% csrf_token %}
             <button type="submit">Log out</button>
         </form>
-
+    <p>Signed in as {{ user.username }}</p>
     <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
     <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
 

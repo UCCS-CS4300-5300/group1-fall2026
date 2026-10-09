@@ -4,4 +4,5 @@ app_name = "core"
 urlpatterns = [
     path("", views.home, name="home"),
     path("logout/", views.logout_view, name="logout"),
+    path("create-account/", views.account_creation, name="account_creation"),
 ]
