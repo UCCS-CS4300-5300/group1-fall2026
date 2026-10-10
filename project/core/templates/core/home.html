@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
+    <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <style>
         html, body {
             margin: 0;
@@ -32,10 +33,10 @@
         }
     </style>
 
-     
 
 </head>
 <body>
+    <button type="button" id="customize-btn">Customize RepKin</button>
     <form method="post" action="{% url 'core:logout' %}">
             {% csrf_token %}
             <button type="submit">Log out</button>
@@ -54,5 +55,7 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    {% include "core/_repkin_modals.html" %}
 </body>
 </html>
