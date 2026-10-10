@@ -1,3 +1,4 @@
+from core.models_repkin import Repkin
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -14,8 +15,6 @@ def user(db):
 def logged_in_client(client, user):
     client.force_login(user)
     return client
-
-
 
 # TESTS BELOW THIS LINE ============================#
 @pytest.mark.django_db
