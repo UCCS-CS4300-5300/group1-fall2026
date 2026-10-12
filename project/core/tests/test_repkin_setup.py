@@ -32,7 +32,7 @@ def logged_in_client(client, user):
     return client
 
 
-# --- the welcome modal on the home page ---------------------------------
+# The welcome modal on the home page vvvvvvvvvv
 
 def test_new_user_sees_welcome_modal(logged_in_client):
     response = logged_in_client.get(reverse(HOME))
@@ -52,7 +52,7 @@ def test_welcome_modal_hidden_once_setup_is_complete(logged_in_client, user):
     assert b'id="welcome-modal"' not in response.content
 
 
-# --- the setup modal on the home page -----------------------------------
+# The setup modal on the home page vvvvvvvvvvvvvvvvvvvvvvv
 
 def test_home_contains_setup_form_posting_to_setup_url(logged_in_client):
     response = logged_in_client.get(reverse(HOME))
@@ -75,7 +75,7 @@ def test_fresh_home_page_shows_no_form_errors(logged_in_client):
     assert b'class="field-error"' not in response.content
 
 
-# --- submitting the form -------------------------------------------------
+# Submitting the form vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 
 
 def test_setup_url_requires_login(client, db):
     response = client.post(reverse(SETUP), VALID)
@@ -131,7 +131,7 @@ def test_setup_modal_can_be_reused_to_change_color_later(logged_in_client, user)
     assert repkin.setup_complete is True
 
 
-# --- when the form is invalid, the user stays on the home page -----------
+# When the form is invalid, the user stays on the home page vvvvvvvvvvvvvvvvvvvvvvv
 
 def test_blank_name_reopens_modal_on_home_page_with_error(logged_in_client, user):
     response = logged_in_client.post(reverse(SETUP), {**VALID, "name": ""})
