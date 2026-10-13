@@ -1,0 +1,81 @@
+{% if not repkin.setup_complete %}
+    <dialog id="welcome-modal" class="welcome-modal" aria-labelledby="welcome-title">
+        <h2 id="welcome-title">Welcome to RepKinz!</h2>
+        <p>Thank you for signing up, your RepKin is eager to meet you.</p>
+        <button type="button" id="create-repkin-btn" class="welcome-btn">Create RepKin</button>
+    </dialog>
+    {% endif %}
+
+    <dialog id="setup-modal" class="welcome-modal" aria-labelledby="setup-title">
+        <h2 id="setup-title">Create your RepKin</h2>
+        <form method="post" action="{% url 'core:repkin_setup' %}">
+            {% csrf_token %}
+
+            <div class="setup-field">
+                {{ setup_form.name.label_tag }}
+                {{ setup_form.name }}
+                {% for error in setup_form.name.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="setup-field">
+                {{ setup_form.color.label_tag }}
+                {{ setup_form.color }}
+                {% for error in setup_form.color.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="setup-field">
+                {{ setup_form.favorite_activity.label_tag }}
+                {{ setup_form.favorite_activity }}
+                {% for error in setup_form.favorite_activity.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="setup-field">
+                {{ setup_form.favorite_food.label_tag }}
+                {{ setup_form.favorite_food }}
+                {% for error in setup_form.favorite_food.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="setup-actions">
+                <button type="submit" class="welcome-btn">Save RepKin</button>
+                <button type="button" id="cancel-setup-btn" class="welcome-btn welcome-btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        const welcomeModal = document.getElementById("welcome-modal");
+        const setupModal = document.getElementById("setup-modal");
+
+        {% if open_setup %}
+            setupModal.showModal();
+        {% elif not repkin.setup_complete %}
+            welcomeModal.showModal();
+        {% endif %}
+
+        const createButton = document.getElementById("create-repkin-btn");
+        if (createButton) {
+            createButton.addEventListener("click", function () {
+                welcomeModal.close();
+                setupModal.showModal();
+            });
+        }
+
+        document.getElementById("cancel-setup-btn").addEventListener("click", function () {
+            setupModal.close();
+        });
+
+        const customizeButton = document.getElementById("customize-btn");
+        if (customizeButton) {
+            customizeButton.addEventListener("click", function () {
+                setupModal.showModal();
+            });
+        }
+    </script>
