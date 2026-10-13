@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <style>
         html, body {
             margin: 0;
@@ -32,26 +33,41 @@
         }
     </style>
 
-     
-
 </head>
+
 <body>
-    <form method="post" action="{% url 'core:logout' %}">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
+    <form method="post" action="{% url 'core:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+    </form>
 
-    <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
-    <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
+    <div class="stage">
+        <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
+        <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+S
+        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
 
-    <ul class="starter-items">
-        {% for item in items %}
-            <li>{{item.title }}</li>
-        {% endfor %}
-    </ul>
+        <div id="mainMenu" class="main_menu hidden"S>
+            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+        </div>
+    </div>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <script>
+        const menu = document.getElementById("mainMenu");
+
+        document.getElementById("mainMenuButton").addEventListener("click", () => {
+            menu.classList.toggle("hidden");
+        });
+
+        // close only when clicking the dark backdrop, not the menu art itself
+        menu.addEventListener("click", (e) => {
+            if (e.target === menu) menu.classList.add("hidden");
+            if (event.key === 'Escape' || event.keyCode===27){
+                const popup = document.getElementById('menu');
+            }
+        });
+
+
+    </script>
 </body>
 </html>

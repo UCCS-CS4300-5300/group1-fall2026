@@ -105,3 +105,9 @@ def test_logout_message(logged_in_client):
     response = logged_in_client.post(reverse("core:logout"), follow=True)
     messages = [str(m) for m in response.context["messages"]]
     assert messages == ["You've been logged out."]
+    
+@pytest.mark.django_db
+def test_main_menu_button_interaction(logged_in_client):
+    response = logged_in_client.get(reverse("core:home"))
+    content = response.content.decode()
+    assert 'id="mainMenuButton"' in content
