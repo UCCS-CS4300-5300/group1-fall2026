@@ -6,6 +6,8 @@ urlpatterns = [
     path("auth/firebase/session/", views.firebase_session, name="firebase_session"),
     # Route practice-data reads and writes through the authenticated Django session.
     path("practice-data/", views.practice_data, name="practice_data"),
+    # Send XP-stat requests to the view that reads and saves the signed-in user's stats.
+    path("xp-stats/", views.xp_stats, name="xp_stats"),
     path("", views.home, name="home"),
     path("logout/", views.logout_view, name="logout"),
 ]
