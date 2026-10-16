@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create account{% endblock %}
+
+{% block extra_head %}
+<style>
+    .signup-card {
+        max-width: 400px;
+        margin: 0.5rem auto 0;
+        padding: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+    }
+
+    .signup-card h1 {
+        margin: 0 0 .25rem;
+        font-size: 1.6rem;
+    }
+
+    .signup-card .lead {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+    }
+
+    .signup-field {
+        margin-bottom: 1rem;
+    }
+
+    .signup-field label {
+        display: block;
+        margin-bottom: .3rem;
+        font-weight: 600;
+    }
+
+    .signup-field input {
+        width: 100%;
+        padding: .6rem .7rem;
+        font: inherit;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+    }
+
+    .signup-field input:focus-visible,
+    .signup-btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .signup-btn {
+        width: 100%;
+        padding: .7rem;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .signup-btn:disabled {
+        cursor: wait;
+        opacity: .7;
+    }
+
+    .signup-error {
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        color: var(--error-text);
+        background: var(--error-bg);
+        border-radius: 6px;
+    }
+
+    .switch-page {
+        margin: 1rem 0 0;
+        text-align: center;
+        color: var(--muted);
+    }
+</style>
+<script type="module" src="{% static 'core/app.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="signup-card">
+    <h1>Create account</h1>
+    <p class="lead">Create an account with your email and password.</p>
+
+    <div id="signup-error" class="signup-error" role="alert" hidden></div>
+
+    <form id="firebase-signup-form"
+          data-firebase-auth="signup"
+          data-session-url="{% url 'core:firebase_session' %}">
+        {% csrf_token %}
+        <div class="signup-field">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="signup-field">
+            <label for="signup-password">Password</label>
+            <input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+        </div>
+
+        <div class="signup-field">
+            <label for="signup-password-confirm">Confirm password</label>
+            <input id="signup-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="6" required>
+        </div>
+
+        <button type="submit" class="signup-btn">Create account!</button>
+    </form>
+
+    <p class="switch-page">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+    </p>
+</div>
+{% endblock %}

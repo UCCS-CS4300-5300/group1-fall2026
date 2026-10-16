@@ -10,4 +10,6 @@ urlpatterns = [
     path("xp-stats/", views.xp_stats, name="xp_stats"),
     path("", views.home, name="home"),
     path("logout/", views.logout_view, name="logout"),
+    path("create-account/", views.account_creation, name="account_creation"),
+    path("repkin/setup/", views.repkin_setup, name="repkin_setup"),
 ]
