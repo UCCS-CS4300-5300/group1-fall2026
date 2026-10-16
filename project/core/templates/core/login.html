@@ -87,6 +87,19 @@
         font-size: .9rem;
     }
 
+    .btn-secondary {
+        display: block;
+        margin-top: .75rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--accent);
+        background: transparent;
+        border: 1px solid var(--accent);
+    }
+
+    .btn-secondary:hover {
+        color: #fff;
+    }
 </style>
 {% endblock %}
 
@@ -129,5 +142,6 @@
         <input type="hidden" name="next" value="{{ next }}">
         <button type="submit" class="btn">Log in</button>
     </form>
+    <a href="{% url 'core:account_creation' %}" class="btn btn-secondary">Create account</a>
 </div>
 {% endblock %}

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <style>
         html, body {
             margin: 0;
@@ -33,6 +34,7 @@
         }
     </style>
 
+
 </head>
 
 <body>
@@ -46,6 +48,15 @@
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
 S
         <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
+    <button type="button" id="customize-btn">Customize RepKin</button>
+    <form method="post" action="{% url 'core:logout' %}">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    <p>Signed in as {{ user.username }}</p>
+    <p>{{ user.username }}'s Repkin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+    <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
+    <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
 
         <div id="mainMenu" class="main_menu hidden"S>
             <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
@@ -69,5 +80,10 @@ S
 
 
     </script>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "core/_repkin_modals.html" %}
 </body>
 </html>

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Create account{% endblock %}
+
+{% block extra_head %}
+<style>
+    .login-card {
+        max-width: 400px;
+        margin: 0.5rem auto 0;
+        padding: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+    }
+
+    .login-card h1 {
+        margin: 0 0 .25rem;
+        font-size: 1.6rem;
+    }
+
+    .login-card .lead {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+    }
+
+    .field {
+        margin-bottom: 1rem;
+    }
+
+    .field label {
+        display: block;
+        margin-bottom: .3rem;
+        font-weight: 600;
+    }
+
+    .field input {
+        width: 100%;
+        padding: .6rem .7rem;
+        font: inherit;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+    }
+
+    .field input:focus-visible,
+    .btn:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .help-text {
+        margin: .3rem 0 0;
+        color: var(--muted);
+        font-size: .85rem;
+    }
+
+    .field-error {
+        margin: .3rem 0 0;
+        color: var(--error-text);
+        font-size: .9rem;
+    }
+
+    .btn {
+        width: 100%;
+        padding: .7rem;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: var(--accent-dark);
+    }
+
+    .switch-page {
+        margin: 1rem 0 0;
+        text-align: center;
+        color: var(--muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <h1>Create account</h1>
+    <p class="lead">Choose a username and password to get started.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.help_text %}
+                <p class="help-text">{{ form.username.help_text }}</p>
+            {% endif %}
+            {% for error in form.username.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {% for error in form.password1.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="field">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {% for error in form.password2.errors %}
+                <p class="field-error">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn">Create account!</button>
+    </form>
+
+    <p class="switch-page">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+    </p>
+</div>
+{% endblock %}
