@@ -1,1 +1,4 @@
 project/core/migrations/0002_repkin.py
+git-team-workflow-lab/
+project/.coverage
+project/.vscode/
