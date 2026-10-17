@@ -119,7 +119,9 @@
     <div id="login-error" class="form-error" role="alert" hidden></div>
 
     {# Firebase checks these details; Django never receives the password. #}
-    <form id="firebase-login-form" data-session-url="{% url 'core:firebase_session' %}">
+    <form id="firebase-login-form"
+          data-firebase-auth="login"
+          data-session-url="{% url 'core:firebase_session' %}">
         {% csrf_token %}
 
         <div class="field">

@@ -87,6 +87,7 @@ def test_login_page_uses_firebase_email_form(client):
 
     assert response.status_code == 200
     assert b'id="firebase-login-form"' in response.content
+    assert b'data-firebase-auth="login"' in response.content
     assert b'name="email"' in response.content
     assert b'name="username"' not in response.content
 
