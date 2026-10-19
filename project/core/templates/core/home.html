@@ -49,6 +49,14 @@
 S
         <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
     <button type="button" id="customize-btn">Customize RepKin</button>
+
+    <button
+        type="button"
+        id="log-exercise-btn"
+        data-exercise-modal="exercise-modal">
+        Log Exercise
+    </button>
+
     <form method="post" action="{% url 'core:logout' %}">
             {% csrf_token %}
             <button type="submit">Log out</button>
@@ -85,5 +93,63 @@ S
     </main>
 
     {% include "core/_repkin_modals.html" %}
+    {% include "core/_exercise_modal.html" %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const exerciseButton = document.getElementById("log-exercise-btn");
+        const exerciseModal = document.getElementById("exercise-modal");
+        const cancelExerciseButton = document.getElementById("cancel-exercise-btn");
+        const exerciseSelect = document.getElementById("exercise-type");
+        const repetitionFields = document.getElementById("repetition-fields");
+        const durationFields = document.getElementById("duration-fields");
+        const distanceFields = document.getElementById("distance-fields");
+        
+        if (exerciseButton && exerciseModal) {
+            exerciseButton.addEventListener("click", function () {
+                exerciseModal.showModal();
+            });
+        }
+
+        if (cancelExerciseButton && exerciseModal) {
+            cancelExerciseButton.addEventListener("click", function () {
+                exerciseModal.close();
+            });
+        }
+
+        if (exerciseSelect && repetitionFields) {
+            exerciseSelect.addEventListener("change", function () {
+                const selectedOption = exerciseSelect.selectedOptions[0];
+
+                const inputType = selectedOption.dataset.inputType;
+
+                repetitionFields.hidden = inputType !== "reps";
+            });
+        }
+
+        if (exerciseSelect && repetitionFields && durationFields) {
+            exerciseSelect.addEventListener("change", function () {
+                const selectedOption = exerciseSelect.selectedOptions[0];
+                const inputType = selectedOption.dataset.inputType;
+
+                repetitionFields.hidden = inputType !== "reps";
+                durationFields.hidden = inputType !== "duration";
+            });
+        }
+
+        if (exerciseSelect && repetitionFields && durationFields && distanceFields) {
+            exerciseSelect.addEventListener("change", function () {
+                const selectedOption = exerciseSelect.selectedOptions[0];
+                const inputType = selectedOption.dataset.inputType;
+
+                repetitionFields.hidden = inputType !== "reps";
+                durationFields.hidden = inputType !== "duration";
+                distanceFields.hidden = inputType !== "distance";
+            });
+        }
+
+    });
+    </script>
+
 </body>
 </html>
