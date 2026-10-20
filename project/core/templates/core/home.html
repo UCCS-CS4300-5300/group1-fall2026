@@ -104,6 +104,9 @@ S
         const repetitionFields = document.getElementById("repetition-fields");
         const durationFields = document.getElementById("duration-fields");
         const distanceFields = document.getElementById("distance-fields");
+        const exerciseForm = document.getElementById("exercise-form");
+        const exerciseFeedback = document.getElementById("exercise-feedback");
+        const submitExerciseButton = document.getElementById("submit-exercise-btn");
         
         if (exerciseButton && exerciseModal) {
             exerciseButton.addEventListener("click", function () {
@@ -114,26 +117,6 @@ S
         if (cancelExerciseButton && exerciseModal) {
             cancelExerciseButton.addEventListener("click", function () {
                 exerciseModal.close();
-            });
-        }
-
-        if (exerciseSelect && repetitionFields) {
-            exerciseSelect.addEventListener("change", function () {
-                const selectedOption = exerciseSelect.selectedOptions[0];
-
-                const inputType = selectedOption.dataset.inputType;
-
-                repetitionFields.hidden = inputType !== "reps";
-            });
-        }
-
-        if (exerciseSelect && repetitionFields && durationFields) {
-            exerciseSelect.addEventListener("change", function () {
-                const selectedOption = exerciseSelect.selectedOptions[0];
-                const inputType = selectedOption.dataset.inputType;
-
-                repetitionFields.hidden = inputType !== "reps";
-                durationFields.hidden = inputType !== "duration";
             });
         }
 
@@ -148,6 +131,50 @@ S
             });
         }
 
+        if (exerciseForm && exerciseFeedback && submitExerciseButton) {
+            exerciseForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                exerciseFeedback.hidden = true;
+                exerciseFeedback.textContent = "";
+                submitExerciseButton.disabled = true;
+
+                try {
+                    const formData = new FormData(exerciseForm);
+
+                    const response = await fetch(exerciseForm.action, {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success === true) {
+                        exerciseFeedback.textContent =
+                            "Exercise submitted successfully!";
+
+                        // We'll reset the modal after backend integration.
+                    } else if (response.status === 400) {
+                        exerciseFeedback.textContent =
+                            "Please check your exercise information.";
+                    } else {
+                        exerciseFeedback.textContent =
+                            result.error || "Exercise could not be submitted.";
+                    }
+
+                    exerciseFeedback.hidden = false;
+
+                } catch (error) {
+                    exerciseFeedback.textContent =
+                        "Unable to submit exercise. Please try again.";
+                    exerciseFeedback.hidden = false;
+
+                } finally {
+                    submitExerciseButton.disabled = false;
+                }
+            });
+        }
     });
     </script>
 
