@@ -46,3 +46,5 @@ Do not rebuild infrastructure that already works. Use this baseline to reach one
 - Run the server with: python manage.py runserver
 - Open a browser and go to: 127.0.0.1:8000
 - Use the username and password you just created to login, and you should be taken to a home page unique to that account.
+
+This is ==highlighted== text. ==Test?==
