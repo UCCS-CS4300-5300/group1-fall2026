@@ -21,5 +21,5 @@ LOGIN_REDIRECT_URL = "/"
 LOGIN_URL = "login"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "repkin-companion") # originally from llama3.2:3b, used a ModelFile to make a tailored chatbot.
 OLLAMA_TIMEOUT = 60
