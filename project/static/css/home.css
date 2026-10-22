@@ -67,14 +67,83 @@ body {
 .main_menu.hidden {
     display: none;
 }
+.menu_panel {
+    position: relative;
+    width: 90%;
+}
 
 .main_menu_png {
-    width: 90%;
+    display: block;
+    width: 100%;
     height: auto;
     image-rendering: pixelated;
 }
 
-.user_display_screen {
-    position:absolute;
-    
+/* Using a template overaly for better configuration with spacing on the page */
+.menu_field {
+    position: absolute;
+    left: var(--l);
+    top: var(--t);
+    width: var(--w);
+    height: var(--h);
+    box-sizing: border-box;
+    margin: 0; 
+}
+
+.main_menu_exit_button, .main_menu_display, .main_menu_input, .main_menu_submit {
+    position: absolute;
+    box-sizing: border-box;
+    border-color: red;
+} 
+
+input.menu_field {
+    background: transparent;
+    border: 0;
+    padding: 0 2%;
+    color: #1c2430;          /* dark: the art's boxes are pale green */
+    font: inherit;
+    font-size: clamp(9px, 1.6vw, 14px);
+}
+
+/* Spacing for Menu Interactables */
+.main_menu_exit_button { left: 90%; top: 2%;  width: 8%;  height: 5%; }
+.main_menu_display     { left: 10%; top: 20%; width: 80%; height: 25%; }
+.main_menu_input       { left: 10%; top: 55%; width: 62%; height: 8%; }
+.main_menu_submit      { left: 74%; top: 55%; width: 16%; height: 8%; }
+
+/* Button Configs*/
+.main_menu_exit_button,
+.main_menu_submit {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.main_menu_display,
+.main_menu_input {
+    background: transparent;
+    border: 0;
+    padding: 2%;
+    color: #fff;
+    font: inherit;
+    font-size: clamp(10px, 2vw, 16px);
+    overflow: auto;
+}
+
+.main_menu_input:focus-visible,
+.main_menu_exit_button:focus-visible,
+.main_menu_submit:focus-visible {
+    outline: 2px solid #b79cff;
+}
+
+button.menu_field {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.menu_field:focus-visible {
+    outline: 2px solid #b79cff;
 }

@@ -7,34 +7,6 @@
     <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow:hidden;
-        }
-
-        .full-page-img {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            object-fit: contain;
-            object-position: center;
-        }
-        .user-base-gif {
-
-            position: absolute;
-            top: 83%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px; /* Adjust the size as needed */
-            height: auto;
-        }
-    </style>
-
-
 </head>
 
 <body>
@@ -43,46 +15,122 @@
         <button type="submit">Log out</button>
     </form>
 
+    <div class="user_text">
+        <button type="button" id="customize-btn">Customize RepKin</button>
+        <p>Signed in as {{ user.username }}</p>
+        <p>{{ user.username }}'s Repkin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+    </div>
+
     <div class="stage">
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
-S
-        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
-    <button type="button" id="customize-btn">Customize RepKin</button>
-    <form method="post" action="{% url 'core:logout' %}">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
-    <p>Signed in as {{ user.username }}</p>
-    <p>{{ user.username }}'s Repkin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
-    <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
-    <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
 
-        <div id="mainMenu" class="main_menu hidden"S>
-            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
-        </div>
+        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
+
+        <div id="mainMenu" class="main_menu hidden">
+    <div class="menu_panel">
+        <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+
+        <button type="button" id="menuExitButton" class="menu_field" aria-label="Close menu"
+                style="--l:90.6%; --t:5.2%; --w:4%; --h:3.5%"></button>
+
+        <!-- Name -->
+        <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current name"
+            style="--l:58.5%; --t:14.4%; --w:22.3%; --h:2.9%">
+        <form class="menu_form">
+            <input class="menu_field" name="name" aria-label="Change name"
+                style="--l:58.5%; --t:18.5%; --w:22.3%; --h:2.9%">
+            <button type="submit" class="menu_field" aria-label="Submit name"
+                    style="--l:73%; --t:21.6%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Username -->
+        <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current username"
+            style="--l:58.5%; --t:25.1%; --w:22.3%; --h:2.9%">
+        <form class="menu_form">
+            <input class="menu_field" name="username" aria-label="Change username"
+                style="--l:58.5%; --t:28.8%; --w:22.3%; --h:2.9%">
+            <button type="submit" class="menu_field" aria-label="Submit username"
+                    style="--l:73%; --t:31.9%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Password -->
+        <form class="menu_form">
+            <input class="menu_field" type="password" name="confirm_password" aria-label="Confirm password"
+                style="--l:58.5%; --t:35.7%; --w:22.3%; --h:2.9%">
+            <input class="menu_field" type="password" name="new_password" aria-label="Change password"
+                style="--l:58.5%; --t:39.5%; --w:22.3%; --h:2.9%">
+            <button type="submit" class="menu_field" aria-label="Submit password"
+                    style="--l:73%; --t:42.5%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Height -->
+        <input class="menu_field" readonly aria-label="Current height"
+            style="--l:58.5%; --t:48.8%; --w:22.3%; --h:2.9%">
+        <form class="menu_form">
+            <input class="menu_field" name="height" aria-label="Update height"
+                style="--l:58.5%; --t:52.7%; --w:22.3%; --h:2.9%">
+            <button type="submit" class="menu_field" aria-label="Submit height"
+                    style="--l:73%; --t:55.6%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Weight -->
+        <input class="menu_field" readonly aria-label="Current weight"
+            style="--l:58.5%; --t:58.8%; --w:22.3%; --h:2.9%">
+        <form class="menu_form">
+            <input class="menu_field" name="weight" aria-label="Update weight"
+                style="--l:58.5%; --t:62.6%; --w:22.3%; --h:2.9%">
+            <button type="submit" class="menu_field" aria-label="Submit weight"
+                    style="--l:73%; --t:65.7%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Elevation (no submit button in the art) -->
+        <input class="menu_field" name="elevation" aria-label="Elevation"
+            style="--l:58.5%; --t:70%; --w:22.3%; --h:2.9%">
+
+        <!-- Bottom buttons -->
+        <button type="button" class="menu_field" aria-label="Credits"
+                style="--l:68.5%; --t:93.2%; --w:12.5%; --h:3.5%"></button>
+        <form method="post" action="{% url 'core:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="menu_field" aria-label="Log out"
+                    style="--l:82.5%; --t:93.2%; --w:12.5%; --h:3.5%"></button>
+        </form>
+    </div>
+</div>
     </div>
 
     <script>
         const menu = document.getElementById("mainMenu");
+        const menuForm = document.getElementById("menuForm");
+        const menuInput = document.getElementById("menuInput");
+        const menuDisplay = document.getElementById("menuDisplay");
+
+
+        function openMenu()  { menu.classList.remove("hidden"); }
+        function closeMenu() { menu.classList.add("hidden"); }
+        
 
         document.getElementById("mainMenuButton").addEventListener("click", () => {
             menu.classList.toggle("hidden");
         });
 
-        // close only when clicking the dark backdrop, not the menu art itself
+        // close when clicking the dark backdrop, not the menu art itself
         menu.addEventListener("click", (e) => {
-            if (e.target === menu) menu.classList.add("hidden");
-            if (event.key === 'Escape' || event.keyCode===27){
-                const popup = document.getElementById('menu');
-            }
+            if (e.target === menu) closeMenu();
         });
 
+        // close on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeMenu();
+        });
 
+        document.getElementById("menuExitButton").addEventListener("click", closeMenu);
+
+        document.querySelectorAll(".menu_form").forEach((form) => {
+        form.addEventListener("submit", (e) => e.preventDefault());
+        });
     </script>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
 
     {% include "core/_repkin_modals.html" %}
 </body>

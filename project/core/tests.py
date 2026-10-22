@@ -112,3 +112,9 @@ def test_main_menu_button_interaction(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
     content = response.content.decode()
     assert 'id="mainMenuButton"' in content
+    
+#Does the main_menu pop up have the appropriate settings and user information
+@pytest.mark.django_db
+def test_main_menu_has_input_controls(home_html):
+    for el_id in ("menuExitButton", "menuInput", "menuDisplay", "menuForm"):
+        assert f'id="{el_id}"' in home_html
