@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Create account{% endblock %}
 
 {% block extra_head %}
 <style>
-    .login-card {
+    .signup-card {
         max-width: 400px;
         margin: 0.5rem auto 0;
         padding: 1rem;
@@ -13,27 +14,27 @@
         border-radius: 8px;
     }
 
-    .login-card h1 {
+    .signup-card h1 {
         margin: 0 0 .25rem;
         font-size: 1.6rem;
     }
 
-    .login-card .lead {
+    .signup-card .lead {
         margin: 0 0 1.5rem;
         color: var(--muted);
     }
 
-    .field {
+    .signup-field {
         margin-bottom: 1rem;
     }
 
-    .field label {
+    .signup-field label {
         display: block;
         margin-bottom: .3rem;
         font-weight: 600;
     }
 
-    .field input {
+    .signup-field input {
         width: 100%;
         padding: .6rem .7rem;
         font: inherit;
@@ -41,25 +42,13 @@
         border-radius: 6px;
     }
 
-    .field input:focus-visible,
-    .btn:focus-visible {
+    .signup-field input:focus-visible,
+    .signup-btn:focus-visible {
         outline: 3px solid var(--accent);
         outline-offset: 2px;
     }
 
-    .help-text {
-        margin: .3rem 0 0;
-        color: var(--muted);
-        font-size: .85rem;
-    }
-
-    .field-error {
-        margin: .3rem 0 0;
-        color: var(--error-text);
-        font-size: .9rem;
-    }
-
-    .btn {
+    .signup-btn {
         width: 100%;
         padding: .7rem;
         font: inherit;
@@ -71,8 +60,17 @@
         cursor: pointer;
     }
 
-    .btn:hover {
-        background: var(--accent-dark);
+    .signup-btn:disabled {
+        cursor: wait;
+        opacity: .7;
+    }
+
+    .signup-error {
+        margin-bottom: 1rem;
+        padding: .7rem .9rem;
+        color: var(--error-text);
+        background: var(--error-bg);
+        border-radius: 6px;
     }
 
     .switch-page {
@@ -81,52 +79,36 @@
         color: var(--muted);
     }
 </style>
+<script type="module" src="{% static 'core/app.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="login-card">
+<div class="signup-card">
     <h1>Create account</h1>
-    <p class="lead">Choose a username and password to get started.</p>
+    <p class="lead">Create an account with your email and password.</p>
 
-    <form method="post">
+    <div id="signup-error" class="signup-error" role="alert" hidden></div>
+
+    <form id="firebase-signup-form"
+          data-firebase-auth="signup"
+          data-session-url="{% url 'core:firebase_session' %}">
         {% csrf_token %}
-
-        <div class="field">
-            {{ form.username.label_tag }}
-            {{ form.username }}
-            {% if form.username.help_text %}
-                <p class="help-text">{{ form.username.help_text }}</p>
-            {% endif %}
-            {% for error in form.username.errors %}
-                <p class="field-error">{{ error }}</p>
-            {% endfor %}
+        <div class="signup-field">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" name="email" type="email" autocomplete="email" required>
         </div>
 
-        <div class="field">
-            {{ form.email.label_tag }}
-            {{ form.email }}
-            {% for error in form.email.errors %}
-                <p class="field-error">{{ error }}</p>
-            {% endfor %}
+        <div class="signup-field">
+            <label for="signup-password">Password</label>
+            <input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>
         </div>
 
-        <div class="field">
-            {{ form.password1.label_tag }}
-            {{ form.password1 }}
-            {% for error in form.password1.errors %}
-                <p class="field-error">{{ error }}</p>
-            {% endfor %}
+        <div class="signup-field">
+            <label for="signup-password-confirm">Confirm password</label>
+            <input id="signup-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="6" required>
         </div>
 
-        <div class="field">
-            {{ form.password2.label_tag }}
-            {{ form.password2 }}
-            {% for error in form.password2.errors %}
-                <p class="field-error">{{ error }}</p>
-            {% endfor %}
-        </div>
-
-        <button type="submit" class="btn">Create account!</button>
+        <button type="submit" class="signup-btn">Create account!</button>
     </form>
 
     <p class="switch-page">

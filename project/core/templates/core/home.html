@@ -7,55 +7,134 @@
     <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow:hidden;
-        }
-
-        .full-page-img {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            object-fit: contain;
-            object-position: center;
-        }
-        .user-base-gif {
-
+        .repkin-summary {
             position: absolute;
-            top: 83%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px; /* Adjust the size as needed */
-            height: auto;
+            left: 1rem;
+            bottom: 1rem;
+            z-index: 2;
+            max-width: 65%;
+            padding: 0.75rem;
+            color: #f7f7f2;
+            background: rgba(22, 31, 29, 0.88);
+            border-radius: 6px;
+            font-family: system-ui, sans-serif;
+        }
+        .repkin-summary p {
+            margin: 0 0 0.5rem;
+        }
+        .repkin-summary button {
+            padding: 0.45rem 0.7rem;
+            font: inherit;
+        }
+        .practice-panel {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 5;
+            box-sizing: border-box;
+            width: min(22rem, calc(100vw - 2rem));
+            max-height: calc(100dvh - 2rem);
+            overflow-y: auto;
+            padding: 1rem;
+            color: #f7f7f2;
+            background: rgba(22, 31, 29, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            font-family: system-ui, sans-serif;
+        }
+        .practice-panel h1 {
+            margin: 0 0 0.75rem;
+            font-size: 1.2rem;
+        }
+        .practice-panel label,
+        .practice-panel input,
+        .practice-panel button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .practice-panel input,
+        .practice-panel button {
+            min-height: 2.5rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            font: inherit;
+        }
+        .practice-panel button {
+            color: #10211c;
+            background: #b8e2c5;
+            border: 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .practice-panel button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+        .practice-result {
+            min-height: 1.5em;
+            margin: 0.75rem 0 0;
         }
     </style>
-
-
 </head>
 <body>
-    <button type="button" id="customize-btn">Customize RepKin</button>
-    <form method="post" action="{% url 'core:logout' %}">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
-    <p>Signed in as {{ user.username }}</p>
-    <p>{{ user.username }}'s Repkin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
-    <img src="{% static 'img/workout_room.png' %}" alt="Full Page Image" class="full-page-img">
-    <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="user base" class="user-base-gif">
+    <form method="post" action="{% url 'core:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+    </form>
 
-    <ul class="starter-items">
-        {% for item in items %}
-            <li>{{item.title }}</li>
-        {% endfor %}
-    </ul>
+    <div class="stage">
+        <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
+        <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu" aria-expanded="false"></button>
+        <div class="repkin-summary">
+            <p>Signed in as {{ user.username }}</p>
+            <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+            <button type="button" id="customize-btn">Customize RepKin</button>
+        </div>
+        <div id="mainMenu" class="main_menu hidden">
+            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+        </div>
+    </div>
 
     <main>
-        {% block content %}{% endblock %}
+        <section class="practice-panel" aria-labelledby="practice-title">
+            <h1 id="practice-title">Practice data check</h1>
+            <form id="practice-data-form" method="post" action="{% url 'core:practice_data' %}">
+                {% csrf_token %}
+                <label for="practice-pushups">Sample push-up count</label>
+                <input id="practice-pushups" name="practice_pushups" type="number" min="0" max="10000" value="7" required>
+                <button type="submit">Save sample</button>
+            </form>
+            <button id="load-practice-data" type="button">Load saved value</button>
+            <p id="practice-result" class="practice-result" role="status" aria-live="polite">Nothing saved yet.</p>
+        </section>
     </main>
 
+    <script>
+        const menu = document.getElementById("mainMenu");
+        const menuButton = document.getElementById("mainMenuButton");
+
+        menuButton.addEventListener("click", () => {
+            const isOpen = menu.classList.toggle("hidden") === false;
+            menuButton.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target === menu) {
+                menu.classList.add("hidden");
+                menuButton.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                menu.classList.add("hidden");
+                menuButton.setAttribute("aria-expanded", "false");
+            }
+        });
+    </script>
+    <script src="{% static 'core/practice_data.js' %}" defer></script>
     {% include "core/_repkin_modals.html" %}
 </body>
 </html>
