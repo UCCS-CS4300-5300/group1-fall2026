@@ -107,7 +107,7 @@ S
         const exerciseForm = document.getElementById("exercise-form");
         const exerciseFeedback = document.getElementById("exercise-feedback");
         const submitExerciseButton = document.getElementById("submit-exercise-btn");
-        
+
         if (exerciseButton && exerciseModal) {
             exerciseButton.addEventListener("click", function () {
                 exerciseModal.showModal();
@@ -128,6 +128,7 @@ S
                 repetitionFields.hidden = inputType !== "reps";
                 durationFields.hidden = inputType !== "duration";
                 distanceFields.hidden = inputType !== "distance";
+                exerciseFeedback.textContent = "";
             });
         }
 

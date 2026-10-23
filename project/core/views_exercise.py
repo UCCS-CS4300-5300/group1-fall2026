@@ -5,6 +5,10 @@ from django.views.decorators.http import require_POST
 
 from .forms_exercise import ExerciseInputForm
 
+## test
+from .exercise_logging import log_exercise, send_stats_to_repkin
+## test
+
 def build_exercise_data(cleaned_data):
     return {
         "exercise_type": cleaned_data["exercise_type"],
@@ -35,11 +39,22 @@ def submit_exercise(request):
 
     # TODO: Call log_exercise(request.user, data) once available.
 
-    # Temporary response until backend integration is ready.
+
+    log_exercise(request.user, data)
+
     return JsonResponse(
         {
-            "success": False,
-            "error": "Exercise logging is not implemented yet.",
+            "success": True,
+
         },
-        status=501,
+        status=200,
     )
+
+    # Temporary response until backend integration is ready.
+    # return JsonResponse(
+    #     {
+    #         "success": False,
+    #         "error": "Exercise logging is not implemented yet.",
+    #     },
+    #     status=501,
+    # )
