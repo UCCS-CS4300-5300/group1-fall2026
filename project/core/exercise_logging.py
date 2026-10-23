@@ -32,3 +32,4 @@ def log_exercise(user, data):
 def send_stats_to_repkin(user, stats, timestamp):
 
     logger.debug("Stats ready for %s's Repkin at %s: %s", user, timestamp, stats)
+    
