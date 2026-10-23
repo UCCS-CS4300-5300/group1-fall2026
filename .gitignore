@@ -1,1 +1,7 @@
+<<<<<<< HEAD
 project/core/migrations/0002_repkin.py
+=======
+project/.coverage
+project/.vscode/
+git-team-workflow-lab/
+>>>>>>> main
