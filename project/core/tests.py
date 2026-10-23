@@ -112,3 +112,98 @@ def test_main_menu_button_interaction(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
     content = response.content.decode()
     assert 'id="mainMenuButton"' in content
+
+@pytest.fixture
+def home_html(logged_in_client):
+    response = logged_in_client.get(reverse("core:home"))
+    assert response.status_code == 200
+    return response.content.decode()
+
+
+@pytest.fixture
+def menu_html(home_html):
+    """Everything from the #mainMenu element onward."""
+    assert 'id="mainMenu"' in home_html
+    return home_html.split('id="mainMenu"', 1)[1]
+
+
+def find_css_text(filename):
+    path = Path(settings.BASE_DIR) / "static" / "css" / filename
+    assert path.exists(), f"{path} not found"
+    return path.read_text(encoding="utf-8")
+
+
+@pytest.mark.django_db
+def test_menu_has_panel_and_fields(menu_html):
+    assert 'class="menu_panel"' in menu_html
+    assert menu_html.count("menu_field") >= 10
+
+
+@pytest.mark.django_db
+def test_menu_shows_current_username(menu_html, user):
+    assert f'value="{user.username}"' in menu_html
+    assert "readonly" in menu_html
+
+
+@pytest.mark.django_db
+def test_menu_password_fields_are_masked(menu_html):
+    assert menu_html.count('type="password"') >= 2
+
+
+@pytest.mark.django_db
+def test_menu_logout_form_posts_to_logout(menu_html):
+    assert f'action="{reverse("core:logout")}"' in menu_html
+    assert "csrfmiddlewaretoken" in menu_html
+
+#Markup Tests
+@pytest.mark.django_db
+def test_hud_shows_signed_in_username(home_html, user):
+    assert "Signed in as" in home_html
+    assert user.username in home_html
+
+
+@pytest.mark.django_db
+def test_hud_shows_repkin_mood_and_color(home_html):
+    assert "mood" in home_html
+    assert "color" in home_html
+
+
+@pytest.mark.django_db
+def test_hud_has_customize_and_logout_controls(home_html):
+    assert 'id="customize-btn"' in home_html
+    assert f'action="{reverse("core:logout")}"' in home_html
+
+
+@pytest.mark.django_db
+def test_hud_is_not_inside_the_stage(home_html):
+    # the info card must come before the room, not be nested in it
+    assert home_html.index('class="user_text"') < home_html.index('class="stage"')
+
+
+@pytest.mark.django_db
+def test_logout_form_includes_csrf_token(home_html):
+    assert "csrfmiddlewaretoken" in home_html
+    
+
+#CSS Tests
+def test_user_text_card_has_background_and_rounded_corners():
+    rule = css_rule(css_text(), ".user_text")
+    assert "background" in rule
+    assert "border-radius" in rule
+
+
+def test_user_text_card_is_not_fixed_over_the_room():
+    rule = css_rule(css_text(), ".user_text")
+    assert "position: fixed" not in rule
+
+
+def test_stage_leaves_room_for_the_hud():
+    rule = css_rule(css_text(), ".stage")
+    assert "--hud-h" in rule
+
+
+
+
+
+
+
