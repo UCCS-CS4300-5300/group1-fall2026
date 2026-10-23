@@ -51,3 +51,20 @@ Do not rebuild infrastructure that already works. Use this baseline to reach one
 
 # Windows command for firebase:
 - $env:FIREBASE_CREDENTIALS_PATH = "$((Get-Item .).FullName)/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json"
+
+
+- When pulling the firebase login changes from main, there are a few things to do:
+1. git switch main
+2. git pull
+3. code .
+4. in VSC, run pip install -r requirements.txt
+5. open this file in the project root: repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json
+6. go to the Discord and find the pinned comment about 'firebase-admin setup'
+7. copy and paste the private key into line 4 of the json file above.
+8. run this command or your environment equivalent to load this path into the environment: $env:FIREBASE_CREDENTIALS_PATH = "$((Get-Item .).FullName)/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json"
+9. run python manage.py runserver
+- this should allow you to authenticate to the firebase database for testing
+*important note!!!*
+- DO NOT EVER COMMIT THIS PRIVATE KEY TO THE REPO!
+- whenever you're going to make a commit, ensure the private key id and private key are NEVER PUSHED TO THE REPO!
+- remove them and/or do not add the changes to the file for git to track!
