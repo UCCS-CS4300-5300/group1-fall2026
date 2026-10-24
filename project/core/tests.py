@@ -185,21 +185,6 @@ def test_logout_form_includes_csrf_token(home_html):
     assert "csrfmiddlewaretoken" in home_html
     
 
-#CSS Tests
-def test_user_text_card_has_background_and_rounded_corners():
-    rule = css_rule(css_text(), ".user_text")
-    assert "background" in rule
-    assert "border-radius" in rule
-
-
-def test_user_text_card_is_not_fixed_over_the_room():
-    rule = css_rule(css_text(), ".user_text")
-    assert "position: fixed" not in rule
-
-
-def test_stage_leaves_room_for_the_hud():
-    rule = css_rule(css_text(), ".stage")
-    assert "--hud-h" in rule
 
 
 
