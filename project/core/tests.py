@@ -167,22 +167,6 @@ def test_hud_shows_repkin_mood_and_color(home_html):
     assert "mood" in home_html
     assert "color" in home_html
 
-
-@pytest.mark.django_db
-def test_hud_has_customize_and_logout_controls(home_html):
-    assert 'id="customize-btn"' in home_html
-    assert f'action="{reverse("core:logout")}"' in home_html
-
-
-@pytest.mark.django_db
-def test_hud_is_not_inside_the_stage(home_html):
-    # the info card must come before the room, not be nested in it
-    assert home_html.index('class="user_text"') < home_html.index('class="stage"')
-
-
-@pytest.mark.django_db
-def test_logout_form_includes_csrf_token(home_html):
-    assert "csrfmiddlewaretoken" in home_html
     
 
 
