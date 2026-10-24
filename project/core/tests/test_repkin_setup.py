@@ -75,7 +75,7 @@ def test_fresh_home_page_shows_no_form_errors(logged_in_client):
     assert b'class="field-error"' not in response.content
 
 
-# Submitting the form vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv 
+# Submitting the form vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 def test_setup_url_requires_login(client, db):
     response = client.post(reverse(SETUP), VALID)

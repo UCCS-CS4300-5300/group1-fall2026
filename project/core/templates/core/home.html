@@ -7,8 +7,77 @@
     <audio id="bg-music" src="{% static 'audio/ES_Casanova_Instrumental.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
+    <style>
+        .repkin-summary {
+            position: absolute;
+            left: 1rem;
+            bottom: 1rem;
+            z-index: 2;
+            max-width: 65%;
+            padding: 0.75rem;
+            color: #f7f7f2;
+            background: rgba(22, 31, 29, 0.88);
+            border-radius: 6px;
+            font-family: system-ui, sans-serif;
+        }
+        .repkin-summary p {
+            margin: 0 0 0.5rem;
+        }
+        .repkin-summary button {
+            padding: 0.45rem 0.7rem;
+            font: inherit;
+        }
+        .practice-panel {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 5;
+            box-sizing: border-box;
+            width: min(22rem, calc(100vw - 2rem));
+            max-height: calc(100dvh - 2rem);
+            overflow-y: auto;
+            padding: 1rem;
+            color: #f7f7f2;
+            background: rgba(22, 31, 29, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            font-family: system-ui, sans-serif;
+        }
+        .practice-panel h1 {
+            margin: 0 0 0.75rem;
+            font-size: 1.2rem;
+        }
+        .practice-panel label,
+        .practice-panel input,
+        .practice-panel button {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .practice-panel input,
+        .practice-panel button {
+            min-height: 2.5rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            font: inherit;
+        }
+        .practice-panel button {
+            color: #10211c;
+            background: #b8e2c5;
+            border: 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .practice-panel button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+        .practice-result {
+            min-height: 1.5em;
+            margin: 0.75rem 0 0;
+        }
+    </style>
 </head>
-
 <body>
         <div class="user_text">
             <p class="user_name">Signed in as <strong>{{ user.username }}</strong></p>
@@ -26,6 +95,31 @@
         <button class= "customize-btn" type="button" id="customize-btn">Customize RepKin</button>
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+      
+<button class="main_menu_button"
+        id="mainMenuButton"
+        aria-label="Open menu"
+        aria-expanded="false"></button>
+
+<div class="repkin-summary">
+    <p>Signed in as {{ user.username }}</p>
+    <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+
+    <button type="button" id="customize-btn">
+        Customize RepKin
+    </button>
+
+    <button
+        type="button"
+        id="log-exercise-btn"
+        data-exercise-modal="exercise-modal">
+        Log Exercise
+    </button>
+</div>
+
+<div id="mainMenu" class="main_menu hidden">
+            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+        </div>
 
         <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
 
@@ -98,8 +192,42 @@
 </div>
     </div>
 
+    <main>
+        <section class="practice-panel" aria-labelledby="practice-title">
+            <h1 id="practice-title">Practice data check</h1>
+            <form id="practice-data-form" method="post" action="{% url 'core:practice_data' %}">
+                {% csrf_token %}
+                <label for="practice-pushups">Sample push-up count</label>
+                <input id="practice-pushups" name="practice_pushups" type="number" min="0" max="10000" value="7" required>
+                <button type="submit">Save sample</button>
+            </form>
+            <button id="load-practice-data" type="button">Load saved value</button>
+            <p id="practice-result" class="practice-result" role="status" aria-live="polite">Nothing saved yet.</p>
+        </section>
+    </main>
+
     <script>
         const menu = document.getElementById("mainMenu");
+        const menuButton = document.getElementById("mainMenuButton");
+
+        menuButton.addEventListener("click", () => {
+            const isOpen = menu.classList.toggle("hidden") === false;
+            menuButton.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target === menu) {
+                menu.classList.add("hidden");
+                menuButton.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                menu.classList.add("hidden");
+                menuButton.setAttribute("aria-expanded", "false");
+            }
+        });
         const menuForm = document.getElementById("menuForm");
         const menuInput = document.getElementById("menuInput");
         const menuDisplay = document.getElementById("menuDisplay");
@@ -129,7 +257,93 @@
         form.addEventListener("submit", (e) => e.preventDefault());
         });
     </script>
-
+    <script src="{% static 'core/practice_data.js' %}" defer></script>
     {% include "core/_repkin_modals.html" %}
+    {% include "core/_exercise_modal.html" %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const exerciseButton = document.getElementById("log-exercise-btn");
+        const exerciseModal = document.getElementById("exercise-modal");
+        const cancelExerciseButton = document.getElementById("cancel-exercise-btn");
+        const exerciseSelect = document.getElementById("exercise-type");
+        const repetitionFields = document.getElementById("repetition-fields");
+        const durationFields = document.getElementById("duration-fields");
+        const distanceFields = document.getElementById("distance-fields");
+        const exerciseForm = document.getElementById("exercise-form");
+        const exerciseFeedback = document.getElementById("exercise-feedback");
+        const submitExerciseButton = document.getElementById("submit-exercise-btn");
+
+        if (exerciseButton && exerciseModal) {
+            exerciseButton.addEventListener("click", function () {
+                exerciseModal.showModal();
+            });
+        }
+
+        if (cancelExerciseButton && exerciseModal) {
+            cancelExerciseButton.addEventListener("click", function () {
+                exerciseModal.close();
+            });
+        }
+
+        if (exerciseSelect && repetitionFields && durationFields && distanceFields) {
+            exerciseSelect.addEventListener("change", function () {
+                const selectedOption = exerciseSelect.selectedOptions[0];
+                const inputType = selectedOption.dataset.inputType;
+
+                repetitionFields.hidden = inputType !== "reps";
+                durationFields.hidden = inputType !== "duration";
+                distanceFields.hidden = inputType !== "distance";
+                exerciseFeedback.textContent = "";
+            });
+        }
+
+        if (exerciseForm && exerciseFeedback && submitExerciseButton) {
+            exerciseForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                exerciseFeedback.hidden = true;
+                exerciseFeedback.textContent = "";
+                submitExerciseButton.disabled = true;
+
+                try {
+                    const formData = new FormData(exerciseForm);
+
+                    const response = await fetch(exerciseForm.action, {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success === true) {
+                        exerciseFeedback.textContent =
+                            "Exercise submitted successfully!";
+
+                        // We'll reset the modal after backend integration.
+                    } else if (response.status === 400) {
+                        exerciseFeedback.textContent =
+                            "Please check your exercise information.";
+                    } else {
+                        exerciseFeedback.textContent =
+                            result.error || "Exercise could not be submitted.";
+                    }
+
+                    exerciseFeedback.hidden = false;
+
+                } catch (error) {
+                    exerciseFeedback.textContent =
+                        "Unable to submit exercise. Please try again.";
+                    exerciseFeedback.hidden = false;
+
+                } finally {
+                    submitExerciseButton.disabled = false;
+                }
+            });
+        }
+    });
+    </script>
+
 </body>
 </html>

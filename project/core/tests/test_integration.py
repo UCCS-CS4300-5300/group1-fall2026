@@ -17,17 +17,24 @@ def item_titles(response):
 
 
 @pytest.mark.django_db
-def test_full_user_journey_login_and_logout(client, user):
+def test_full_user_journey_login_and_logout(client, monkeypatch):
+    monkeypatch.setattr(
+        "core.views.verify_firebase_id_token",
+        lambda token: {"uid": "integration-uid", "email": "juan@example.com"},
+    )
+
     # 1. Logged out: home sends you to login
     response = client.get(reverse("core:home"))
     assert response.status_code == 302
 
-    # 2. Log in through the real form and follow the redirect
+    # 2. Firebase verifies the token and Django establishes the session.
     response = client.post(
-        reverse("login"),
-        {"username": "juan", "password": PASSWORD},
-        follow=True,
+        reverse("core:firebase_session"),
+        {"idToken": "signed-firebase-token"},
     )
+    assert response.status_code == 200
+
+    response = client.get(reverse("core:home"))
     assert response.request["PATH_INFO"] == reverse("core:home")
     assert b"Log out" in response.content
 
