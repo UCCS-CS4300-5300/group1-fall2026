@@ -151,3 +151,68 @@ def test_home_contains_practice_data_form(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
     assert b'id="practice-data-form"' in response.content
     assert f'action="{reverse("core:practice_data")}"'.encode() in response.content
+
+@pytest.fixture
+def home_html(logged_in_client):
+    response = logged_in_client.get(reverse("core:home"))
+    assert response.status_code == 200
+    return response.content.decode()
+
+
+@pytest.fixture
+def menu_html(home_html):
+    """Everything from the #mainMenu element onward."""
+    assert 'id="mainMenu"' in home_html
+    return home_html.split('id="mainMenu"', 1)[1]
+
+
+def find_css_text(filename):
+    path = Path(settings.BASE_DIR) / "static" / "css" / filename
+    assert path.exists(), f"{path} not found"
+    return path.read_text(encoding="utf-8")
+
+
+@pytest.mark.django_db
+def test_menu_has_panel_and_fields(menu_html):
+    assert 'class="menu_panel"' in menu_html
+    assert menu_html.count("menu_field") >= 10
+
+
+@pytest.mark.django_db
+def test_menu_shows_current_username(menu_html, user):
+    assert f'value="{user.username}"' in menu_html
+    assert "readonly" in menu_html
+
+
+@pytest.mark.django_db
+def test_menu_password_fields_are_masked(menu_html):
+    assert menu_html.count('type="password"') >= 2
+
+
+@pytest.mark.django_db
+def test_menu_logout_form_posts_to_logout(menu_html):
+    assert f'action="{reverse("core:logout")}"' in menu_html
+    assert "csrfmiddlewaretoken" in menu_html
+
+#Markup Tests
+@pytest.mark.django_db
+def test_hud_shows_signed_in_username(home_html, user):
+    assert "Signed in as" in home_html
+    assert user.username in home_html
+
+
+@pytest.mark.django_db
+def test_hud_shows_repkin_mood_and_color(home_html):
+    assert "mood" in home_html
+    assert "color" in home_html
+
+    
+
+
+
+
+
+
+
+
+
