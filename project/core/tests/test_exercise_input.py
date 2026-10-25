@@ -486,39 +486,6 @@ def test_submit_exercise_rejects_invalid_data(logged_in_client):
     assert response_data["success"] is False
     assert "sets" in response_data["errors"]
 
-
-@pytest.mark.parametrize(
-    "data",
-    [
-        {
-            "exercise_type": "push_ups",
-            "sets": 3,
-            "reps": 10,
-        },
-        {
-            "exercise_type": "planks",
-            "duration_seconds": 60,
-        },
-        {
-            "exercise_type": "running",
-            "distance_miles": "2.50",
-        },
-    ],
-)
-def test_valid_exercise_not_saved_before_integration(
-    logged_in_client, data
-):
-    response = logged_in_client.post(
-        reverse("core:submit_exercise"),
-        data=data,
-    )
-
-    assert response.status_code == 501
-
-    response_data = response.json()
-    assert response_data["success"] is False
-
-
 def test_exercise_form_targets_submission_endpoint(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
 
