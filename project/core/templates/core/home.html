@@ -79,23 +79,23 @@
     </style>
 </head>
 <body>
-        <div class="user_text">
+        <!-- This is duplicated, Since the styling is different. I'm not sure which one we want to keep.  -->
+
+        <!-- <div class="user_text">
             <p class="user_name">Signed in as <strong>{{ user.username }}</strong></p>
             <p class="user_repkin">
                 {{ user.username }}'s Repkin: mood {{ repkin.mood }}, color
                 <span class="repkin_color" style="color: {{ repkin.color }}">{{ repkin.color }}</span>
             </p>
-        </div>
-    
+        </div> -->
+
 
     <div class="stage">
 
-        
-    
         <button class= "customize-btn" type="button" id="customize-btn">Customize RepKin</button>
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
-      
+
 <button class="main_menu_button"
         id="mainMenuButton"
         aria-label="Open menu"
@@ -105,10 +105,6 @@
     <p>Signed in as {{ user.username }}</p>
     <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
 
-    <button type="button" id="customize-btn">
-        Customize RepKin
-    </button>
-
     <button
         type="button"
         id="log-exercise-btn"
@@ -116,12 +112,6 @@
         Log Exercise
     </button>
 </div>
-
-<div id="mainMenu" class="main_menu hidden">
-            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
-        </div>
-
-        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu"></button>
 
         <div id="mainMenu" class="main_menu hidden">
     <div class="menu_panel">
@@ -186,7 +176,7 @@
         <form method="post" action="{% url 'core:logout' %}">
             {% csrf_token %}
             <button type="submit" class="menu_field" aria-label="Log out"
-                    style="--l:77.5%; --t:88.6%; --w:12%; --h:3.7%""></button>
+                    style="--l:77.5%; --t:88.6%; --w:12%; --h:3.7%"></button>
         </form>
     </div>
 </div>
@@ -235,11 +225,12 @@
 
         function openMenu()  { menu.classList.remove("hidden"); }
         function closeMenu() { menu.classList.add("hidden"); }
-        
 
-        document.getElementById("mainMenuButton").addEventListener("click", () => {
-            menu.classList.toggle("hidden");
-        });
+        //The code below is probably causing the settings page to close.
+        //TODO: investigate the bug
+        // document.getElementById("mainMenuButton").addEventListener("click", () => {
+        //     menu.classList.toggle("hidden");
+        // });
 
         // close when clicking the dark backdrop, not the menu art itself
         menu.addEventListener("click", (e) => {
