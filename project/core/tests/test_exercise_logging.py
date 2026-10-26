@@ -5,10 +5,11 @@ import pytest
 from django.contrib.auth.models import User
 
 from core import exercise_logging
-from core.exercise_logging import log_exercise
+from core.exercise_logging import log_exercise, send_stats_to_repkin
 from core.exercises import EXERCISES, REPS, DURATION, DISTANCE, calculate_stats
 from core.forms_exercise import ExerciseInputForm
 from core.models_exercise import ExerciseLog
+from core.models_repkin import Repkin
 
 
 def flat(exercise_type, sets=None, reps=None, duration_seconds=None, distance_miles=None):
@@ -152,3 +153,11 @@ def test_nothing_is_saved_if_sending_stats_fails(user, monkeypatch):
         log_exercise(user, flat("push_ups", sets=3, reps=10))
 
     assert ExerciseLog.objects.count() == 0
+
+def test_repkin_stats_sent(user):
+    stats = {"strength": 10, "dexterity":5, "endurance":6}
+    repkin = Repkin.objects.create(owner=user, mood="happy", color="violet")
+    # repkin.set_progress({"strength":0, "dexterity":0, "endurance":0})
+    send_stats_to_repkin(user, stats, timestamp=0)
+
+    assert repkin.progress_stats == {"strength": 10, "dexterity":5, "endurance":6}

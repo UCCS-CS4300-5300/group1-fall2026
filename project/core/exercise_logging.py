@@ -4,6 +4,7 @@ from django.db import transaction
 
 from .exercises import calculate_stats
 from .models_exercise import ExerciseLog
+from .views import get_repkin
 
 logger = logging.getLogger(__name__)
 
@@ -31,5 +32,7 @@ def log_exercise(user, data):
 
 def send_stats_to_repkin(user, stats, timestamp):
 
+    repkin=get_repkin(user)
+    repkin.update_progress(stats)
     logger.debug("Stats ready for %s's Repkin at %s: %s", user, timestamp, stats)
     
