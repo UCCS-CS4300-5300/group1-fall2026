@@ -1,0 +1,88 @@
+
+<dialog id="exercise-modal">
+    <h2>Log Exercise</h2>
+
+    <form id="exercise-form" method="post" action="{% url 'core:submit_exercise' %}">
+        {% csrf_token %}
+
+        <!-- Exercise Selection -->
+        <label for="exercise-type">Select Exercise:</label>
+
+        <select id="exercise-type" name="exercise_type">
+            <option value="">-- Select an Exercise --</option>
+            <option value="push_ups" data-input-type="reps">Push Ups</option>
+            <option value="sit_ups" data-input-type="reps">Sit Ups</option>
+            <option value="squats" data-input-type="reps">Squats</option>
+            <option value="planks" data-input-type="duration">Planks</option>
+            <option value="curls" data-input-type="reps">Curls</option>
+            <option value="walking" data-input-type="distance">Walking</option>
+            <option value="jogging" data-input-type="distance">Jogging</option>
+            <option value="running" data-input-type="distance">Running</option>
+            <option value="lunges" data-input-type="reps">Lunges</option>
+            <option value="butterfly_stretch" data-input-type="duration">Butterfly Stretch</option>
+            <option value="shoulder_stretch" data-input-type="duration">Shoulder Stretch</option>
+        </select>
+
+        <!-- Repetition Inputs -->
+        <div id="repetition-fields" hidden>
+            <label for="exercise-sets">Sets</label>
+            <input
+                type="number"
+                id="exercise-sets"
+                name="sets"
+                min="1"
+                step="1"
+            >
+
+            <label for="exercise-reps">Reps</label>
+            <input
+                type="number"
+                id="exercise-reps"
+                name="reps"
+                min="1"
+                step="1"
+            >
+        </div>
+
+        <!-- Duration Inputs -->
+        <div id="duration-fields" hidden>
+            <label for="exercise-duration">Duration (seconds)</label>
+            <input
+                type="number"
+                id="exercise-duration"
+                name="duration_seconds"
+                min="1"
+                step="1"
+            >
+        </div>
+
+        <!-- Distance Inputs -->
+        <div id="distance-fields" hidden>
+            <label for="exercise-distance">Distance (miles)</label>
+            <input
+                type="number"
+                id="exercise-distance"
+                name="distance_miles"
+                min="0.01"
+                step="0.01"
+            >
+        </div>
+
+        <!-- Exercise Submission Feedback -->
+        <div
+            id="exercise-feedback"
+            role="status"
+            aria-live="polite"
+            hidden>
+        </div>
+
+        <!-- Modal Actions -->
+        <button type="submit" id="submit-exercise-btn">
+            Submit Exercise
+        </button>
+
+        <button type="button" id="cancel-exercise-btn">
+            Cancel
+        </button>
+    </form>
+</dialog>

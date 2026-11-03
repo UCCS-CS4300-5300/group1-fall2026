@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <audio id="bg-music" src="{% static 'audio/side-stepping-prigida-main-version-21377-01-09.mp3' %}" autoplay loop></audio>
+    <audio id="bg-music" src="{% static 'audio/ES_Casanova_Instrumental.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <style>
@@ -79,23 +79,107 @@
     </style>
 </head>
 <body>
-    <form method="post" action="{% url 'core:logout' %}" class="logout-form">
-        {% csrf_token %}
-        <button type="submit">Log out</button>
-    </form>
+        <!-- This is duplicated, Since the styling is different. I'm not sure which one we want to keep.  -->
+
+        <!-- <div class="user_text">
+            <p class="user_name">Signed in as <strong>{{ user.username }}</strong></p>
+            <p class="user_repkin">
+                {{ user.username }}'s Repkin: mood {{ repkin.mood }}, color
+                <span class="repkin_color" style="color: {{ repkin.color }}">{{ repkin.color }}</span>
+            </p>
+        </div> -->
+
 
     <div class="stage">
+
+        <button class= "customize-btn" type="button" id="customize-btn">Customize RepKin</button>
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
-        <button class="main_menu_button" id="mainMenuButton" aria-label="Open menu" aria-expanded="false"></button>
-        <div class="repkin-summary">
-            <p>Signed in as {{ user.username }}</p>
-            <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
-            <button type="button" id="customize-btn">Customize RepKin</button>
-        </div>
+
+<button class="main_menu_button"
+        id="mainMenuButton"
+        aria-label="Open menu"
+        aria-expanded="false"></button>
+
+<div class="repkin-summary">
+    <p>Signed in as {{ user.username }}</p>
+    <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+
+    <button
+        type="button"
+        id="log-exercise-btn"
+        data-exercise-modal="exercise-modal">
+        Log Exercise
+    </button>
+</div>
+
         <div id="mainMenu" class="main_menu hidden">
-            <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
-        </div>
+    <div class="menu_panel">
+        <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+
+        <button type="button" id="menuExitButton" class="menu_field" aria-label="Close menu"
+                style="--l:85%; --t:5.2%; --w:5.2%; --h:4.6%"></button>
+
+        <!-- Name -->
+        <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current name"
+            style="--l:55.5%; --t:14.7%; --w:20%; --h:2.7%">
+        <form class="menu_form">
+            <input class="menu_field" name="name" aria-label="Change name"
+                style="--l:55.5%; --t:18.6%; --w:20%; --h:2.7%">
+            <button type="submit" class="menu_field" aria-label="Submit name"
+                    style="--l:68%; --t:21.4%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Username -->
+        <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current username"
+            style="--l:55.5%; --t:24.8%; --w:20%; --h:2.7%">
+        <form class="menu_form">
+            <input class="menu_field" name="username" aria-label="Change username"
+                style="--l:55.5%; --t:28.3%; --w:20%; --h:2.7%">
+            <button type="submit" class="menu_field" aria-label="Submit username"
+                    style="--l:68%; --t:30.9%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Password -->
+        <form class="menu_form">
+            <input class="menu_field" type="password" name="confirm_password" aria-label="Confirm password"
+                style="--l:55.6%; --t:34.7%; --w:20%; --h:2.7%">
+            <input class="menu_field" type="password" name="new_password" aria-label="Change password"
+                style="--l:55.7%; --t:38.5%; --w:20%; --h:2.7%">
+            <button type="submit" class="menu_field" aria-label="Submit password"
+                    style="--l:69%; --t:41%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Height -->
+        <input class="menu_field" readonly aria-label="Current height"
+            style="--l:55.9%; --t:47.0%; --w:20%; --h:2.7%">
+        <form class="menu_form">
+            <input class="menu_field" name="height" aria-label="Update height"
+                style="--l:55.8%; --t:50.7%; --w:20%; --h:2.7%">
+            <button type="submit" class="menu_field" aria-label="Submit height"
+                    style="--l:69%; --t:53.6%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Weight -->
+        <input class="menu_field" readonly aria-label="Current weight"
+            style="--l:56.2%; --t:56.6%; --w:20%; --h:2.6%">
+        <form class="menu_form">
+            <input class="menu_field" name="weight" aria-label="Update weight"
+                style="--l:55.9%; --t:60.1%; --w:20%; --h:2.6%">
+            <button type="submit" class="menu_field" aria-label="Submit weight"
+                    style="--l:69%; --t:63%; --w:8%; --h:1.8%"></button>
+        </form>
+
+        <!-- Bottom buttons -->
+        <button type="button" class="menu_field" aria-label="Credits"
+                style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
+        <form method="post" action="{% url 'core:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="menu_field" aria-label="Log out"
+                    style="--l:77.5%; --t:88.6%; --w:12%; --h:3.7%"></button>
+        </form>
+    </div>
+</div>
     </div>
 
     <main>
@@ -134,8 +218,123 @@
                 menuButton.setAttribute("aria-expanded", "false");
             }
         });
+        const menuForm = document.getElementById("menuForm");
+        const menuInput = document.getElementById("menuInput");
+        const menuDisplay = document.getElementById("menuDisplay");
+
+
+        function openMenu()  { menu.classList.remove("hidden"); }
+        function closeMenu() { menu.classList.add("hidden"); }
+
+        //The code below is probably causing the settings page to close.
+        //TODO: investigate the bug
+        // document.getElementById("mainMenuButton").addEventListener("click", () => {
+        //     menu.classList.toggle("hidden");
+        // });
+
+        // close when clicking the dark backdrop, not the menu art itself
+        menu.addEventListener("click", (e) => {
+            if (e.target === menu) closeMenu();
+        });
+
+        // close on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeMenu();
+        });
+
+        document.getElementById("menuExitButton").addEventListener("click", closeMenu);
+
+        document.querySelectorAll(".menu_form").forEach((form) => {
+        form.addEventListener("submit", (e) => e.preventDefault());
+        });
     </script>
     <script src="{% static 'core/practice_data.js' %}" defer></script>
     {% include "core/_repkin_modals.html" %}
+    {% include "core/_exercise_modal.html" %}
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const exerciseButton = document.getElementById("log-exercise-btn");
+        const exerciseModal = document.getElementById("exercise-modal");
+        const cancelExerciseButton = document.getElementById("cancel-exercise-btn");
+        const exerciseSelect = document.getElementById("exercise-type");
+        const repetitionFields = document.getElementById("repetition-fields");
+        const durationFields = document.getElementById("duration-fields");
+        const distanceFields = document.getElementById("distance-fields");
+        const exerciseForm = document.getElementById("exercise-form");
+        const exerciseFeedback = document.getElementById("exercise-feedback");
+        const submitExerciseButton = document.getElementById("submit-exercise-btn");
+
+        if (exerciseButton && exerciseModal) {
+            exerciseButton.addEventListener("click", function () {
+                exerciseModal.showModal();
+            });
+        }
+
+        if (cancelExerciseButton && exerciseModal) {
+            cancelExerciseButton.addEventListener("click", function () {
+                exerciseModal.close();
+            });
+        }
+
+        if (exerciseSelect && repetitionFields && durationFields && distanceFields) {
+            exerciseSelect.addEventListener("change", function () {
+                const selectedOption = exerciseSelect.selectedOptions[0];
+                const inputType = selectedOption.dataset.inputType;
+
+                repetitionFields.hidden = inputType !== "reps";
+                durationFields.hidden = inputType !== "duration";
+                distanceFields.hidden = inputType !== "distance";
+                exerciseFeedback.textContent = "";
+            });
+        }
+
+        if (exerciseForm && exerciseFeedback && submitExerciseButton) {
+            exerciseForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                exerciseFeedback.hidden = true;
+                exerciseFeedback.textContent = "";
+                submitExerciseButton.disabled = true;
+
+                try {
+                    const formData = new FormData(exerciseForm);
+
+                    const response = await fetch(exerciseForm.action, {
+                        method: "POST",
+                        body: formData,
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success === true) {
+                        exerciseFeedback.textContent =
+                            "Exercise submitted successfully!";
+
+                        // We'll reset the modal after backend integration.
+                    } else if (response.status === 400) {
+                        exerciseFeedback.textContent =
+                            "Please check your exercise information.";
+                    } else {
+                        exerciseFeedback.textContent =
+                            result.error || "Exercise could not be submitted.";
+                    }
+
+                    exerciseFeedback.hidden = false;
+
+                } catch (error) {
+                    exerciseFeedback.textContent =
+                        "Unable to submit exercise. Please try again.";
+                    exerciseFeedback.hidden = false;
+
+                } finally {
+                    submitExerciseButton.disabled = false;
+                }
+            });
+        }
+    });
+    </script>
+
 </body>
 </html>
