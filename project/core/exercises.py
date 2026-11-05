@@ -16,6 +16,11 @@ EXERCISES = {
     "walking":           {"input_type": DISTANCE, "split": {"endurance": 100}},
     "jogging":           {"input_type": DISTANCE, "split": {"dexterity": 20, "endurance": 80}},
     "running":           {"input_type": DISTANCE, "split": {"dexterity": 30, "endurance": 70}},
+    "jumping_jacks": {"input_type": REPS, "split": {"dexterity": 50,
+    "endurance": 50,
+    },
+},
+
 }
 
 # How much effort each unit is worth, so different exercise types are comparable.

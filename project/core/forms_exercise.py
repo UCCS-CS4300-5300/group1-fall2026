@@ -15,6 +15,7 @@ class ExerciseInputForm(forms.Form):
         ("lunges", "Lunges"),
         ("butterfly_stretch", "Butterfly Stretch"),
         ("shoulder_stretch", "Shoulder Stretch"),
+        ("jumping_jacks", "Jumping Jacks"),
     ]
 
     REPETITION_EXERCISES = {
@@ -23,6 +24,7 @@ class ExerciseInputForm(forms.Form):
         "squats",
         "curls",
         "lunges",
+        "jumping_jacks",
     }
 
     DURATION_EXERCISES = {
