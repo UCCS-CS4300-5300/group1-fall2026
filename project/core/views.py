@@ -12,6 +12,8 @@ from .firebase_auth import get_firestore_client, verify_firebase_id_token
 from .forms import RepkinSetupForm
 from .models import StarterItem
 from .models_repkin import Repkin
+from .exercises import EXERCISES
+
 
 logger = logging.getLogger(__name__)
 
@@ -167,10 +169,20 @@ def logout_view(request):
 
 def render_home(request, repkin, setup_form, open_setup=False):
     items = StarterItem.objects.filter(is_active=True).order_by("title")
+
     context = {
         "items": items,
         "repkin": repkin,
         "setup_form": setup_form,
         "open_setup": open_setup,
+        "exercises": [
+            {
+                "name": name,
+                "label": name.replace("_", " ").title(),
+                "input_type": info["input_type"],
+            }
+            for name, info in EXERCISES.items()
+],
     }
+
     return render(request, "core/home.html", context)

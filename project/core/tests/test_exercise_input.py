@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from html.parser import HTMLParser
 from core.views_exercise import build_exercise_data
+from core.exercises import EXERCISES
+
 
 @pytest.fixture
 def logged_in_client(client, db):
@@ -51,6 +53,7 @@ class ExerciseDropdownParser(HTMLParser):
         self.in_select = False
         self.options = []
         self.select_found = False
+        self.option_input_types = {}
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
@@ -64,7 +67,13 @@ class ExerciseDropdownParser(HTMLParser):
                 self.select_found = True
 
         elif tag == "option" and self.in_select:
-            self.options.append(attributes.get("value"))
+            value = attributes.get("value")
+            self.options.append(value)
+
+            if value:
+                self.option_input_types[value] = attributes.get(
+                    "data-input-type"
+                )
 
     def handle_endtag(self, tag):
         if tag == "select":
@@ -127,7 +136,8 @@ def test_repetition_exercises_have_input_type_metadata(logged_in_client):
 
     assert response.status_code == 200
 
-    content = response.content.decode()
+    parser = ExerciseDropdownParser()
+    parser.feed(response.content.decode())
 
     repetition_exercises = [
         "push_ups",
@@ -138,15 +148,17 @@ def test_repetition_exercises_have_input_type_metadata(logged_in_client):
     ]
 
     for exercise in repetition_exercises:
-        assert (
-            f'value="{exercise}" data-input-type="reps"'
-            in content
-        )
+        assert parser.option_input_types[exercise] == "reps"
+
+
 
 def test_exercise_modal_has_hidden_duration_field(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
 
     assert response.status_code == 200
+
+    parser = ExerciseDropdownParser()
+    parser.feed(response.content.decode())
 
     content = response.content.decode()
 
@@ -164,15 +176,15 @@ def test_exercise_modal_has_hidden_duration_field(logged_in_client):
     ]
 
     for exercise in duration_exercises:
-        assert (
-            f'value="{exercise}" data-input-type="duration"'
-            in content
-        )
+        assert parser.option_input_types["planks"] == "duration"
 
 def test_exercise_modal_has_hidden_distance_field(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
 
     assert response.status_code == 200
+
+    parser = ExerciseDropdownParser()
+    parser.feed(response.content.decode())
 
     content = response.content.decode()
 
@@ -190,10 +202,7 @@ def test_exercise_modal_has_hidden_distance_field(logged_in_client):
     ]
 
     for exercise in distance_exercises:
-        assert (
-            f'value="{exercise}" data-input-type="distance"'
-            in content
-        )
+        assert parser.option_input_types["walking"] == "distance"
 
 @pytest.mark.parametrize(
     "exercise_type",
@@ -525,3 +534,26 @@ def test_validated_exercise_builds_flat_data():
         "duration_seconds": None,
         "distance_miles": None,
     }
+
+
+def test_exercise_dropdown_matches_catalog(logged_in_client):
+    response = logged_in_client.get(reverse("core:home"))
+
+    assert response.status_code == 200
+
+    parser = ExerciseDropdownParser()
+    parser.feed(response.content.decode())
+
+    assert parser.select_found
+
+    expected = {
+        name: info["input_type"]
+        for name, info in EXERCISES.items()
+    }
+
+    assert parser.option_input_types == expected
+
+    exercise_options = [
+        value for value in parser.options if value
+    ]
+    assert len(exercise_options) == len(expected)
