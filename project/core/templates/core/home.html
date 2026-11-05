@@ -99,7 +99,8 @@
 <button class="main_menu_button"
         id="mainMenuButton"
         aria-label="Open menu"
-        aria-expanded="false"></button>
+        aria-expanded="false">
+</button>
 
 <div class="repkin-summary">
     <p>Signed in as {{ user.username }}</p>
@@ -113,9 +114,17 @@
     </button>
 </div>
 
-        <div id="mainMenu" class="main_menu hidden">
+    <div id="mainMenu" class="main_menu hidden">
     <div class="menu_panel">
-        <img src="{% static 'img/main_menu_starter.png' %}" alt="Main Menu" class="main_menu_png">
+
+
+        <img id="menuArt"
+            src="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
+            alt="Main Menu" class="main_menu_png"
+            data-lbs-on="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
+            data-lbs-off="{% static 'img/main_menu_pngs/main_menu_lbs_off.png' %}"
+            data-kgs-on="{% static 'img/main_menu_pngs/main_menu_kgs_on.png' %}"
+            data-kgs-off="{% static 'img/main_menu_pngs/main_menu_kgs_off.png' %}">
 
         <button type="button" id="menuExitButton" class="menu_field" aria-label="Close menu"
                 style="--l:85%; --t:5.2%; --w:5.2%; --h:4.6%"></button>
@@ -175,9 +184,28 @@
                 style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
         <form method="post" action="{% url 'core:logout' %}">
             {% csrf_token %}
-            <button type="submit" class="menu_field" aria-label="Log out"
-                    style="--l:77.5%; --t:88.6%; --w:12%; --h:3.7%"></button>
+            <button type="submit">Log out</button>
         </form>
+
+        <!-- Credits button (invisible, over the drawn Credits box) -->
+        <button type="button" id="creditsButton" class="menu_field" aria-label="View credits"
+            style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
+
+        <!-- Credits screen, laid over the menu -->
+        <div id="creditsOverlay" class="credits_overlay hidden">
+            <img src="{% static 'img/credits.png' %}" alt="Credits" class="credits_png">
+            <button type="button" id="creditsExitButton" class="credits_exit_button" aria-label="Close credits"></button>
+        </div>
+
+        <!-- Music Control -->
+        <button type="button" id="musicBtn" class="menu_field" aria-label="Music" aria-pressed="true"
+            style="--l:40.8%; --t:77.7%; --w:3.8%; --h:3.2%"></button>
+        <button type="button" id="lbsBtn" class="menu_field" aria-label="Pounds" aria-pressed="true"
+                style="--l:40.8%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
+        <button type="button" id="kgsBtn" class="menu_field" aria-label="Kilograms" aria-pressed="false"
+                style="--l:46.9%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
+    </div>
+</div>
     </div>
 </div>
     </div>
@@ -210,6 +238,42 @@
                 menu.classList.add("hidden");
                 menuButton.setAttribute("aria-expanded", "false");
             }
+        });
+        const menuForm = document.getElementById("menuForm");
+        const menuInput = document.getElementById("menuInput");
+        const menuDisplay = document.getElementById("menuDisplay");
+
+
+        function openMenu()  { menu.classList.remove("hidden"); }
+        function closeMenu() { menu.classList.add("hidden"); creditsOverlay.classList.add("hidden"); }
+
+        //close on click outside of menu
+        menu.addEventListener("click", (e) => {
+            if (e.target === menu) closeMenu();
+        });
+
+        // close on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeMenu();
+        });
+
+        //close on click of exit button
+        document.getElementById("menuExitButton").addEventListener("click", closeMenu);
+
+        document.querySelectorAll(".menu_form").forEach((form) => {
+        form.addEventListener("submit", (e) => e.preventDefault());
+        });
+
+        /*Credits Handling*/
+        const creditsOverlay= document.getElementById("creditsOverlay");
+
+        document.getElementById("creditsButton").addEventListener("click", () => {
+            creditsOverlay.classList.remove("hidden");
+        });
+
+        creditsOverlay.addEventListener("click", (e) => {
+            e.stopPropagation();
+            creditsOverlay.classList.add("hidden");
         });
 
         document.addEventListener("keydown", (event) => {
@@ -334,7 +398,35 @@
             });
         }
     });
+
+    /* Music and Unit Toggles */
+    const menuArt = document.getElementById("menuArt");
+    const music = document.getElementById("bg-music");
+    const musicBtn = document.getElementById("musicBtn");
+    const lbsBtn = document.getElementById("lbsBtn");
+    const kgsBtn = document.getElementById("kgsBtn");
+    let unit = "lbs";
+    let musicOn = true;
+
+    function renderMenuArt() {
+        menuArt.src = menuArt.dataset[unit + (musicOn ? "On" : "Off")];
+        musicBtn.setAttribute("aria-pressed", String(musicOn));
+        lbsBtn.setAttribute("aria-pressed", String(unit === "lbs"));
+        kgsBtn.setAttribute("aria-pressed", String(unit === "kgs"));
+        if (musicOn) { music.play().catch(() => {}); } else { music.pause(); }
+    }
+
+    musicBtn.addEventListener("click", () => { musicOn = !musicOn; renderMenuArt(); });
+    lbsBtn.addEventListener("click", () => { unit = "lbs"; renderMenuArt(); });
+    kgsBtn.addEventListener("click", () => { unit = "kgs"; renderMenuArt(); });
+
+    // browsers block autoplay with sound, so start on the first click if music is on
+    document.addEventListener("pointerdown", () => {
+        if (musicOn && music.paused) music.play().catch(() => {});
+    }, { once: true });
     </script>
 
+<a href="locker_room.html" class= "locker_room_page_button"></a>
+    
 </body>
 </html>

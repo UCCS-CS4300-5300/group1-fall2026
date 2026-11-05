@@ -205,6 +205,22 @@ def test_hud_shows_signed_in_username(home_html, user):
 def test_hud_shows_repkin_mood_and_color(home_html):
     assert "mood" in home_html
     assert "color" in home_html
+<<<<<<< HEAD
+    
+@pytest.mark.django_db
+def test_menu_has_credits_button_and_overlay(home_html):
+    assert 'id="creditsButton"' in home_html
+    assert 'id="creditsOverlay"' in home_html
+    assert 'id="creditsExitButton"' in home_html
+    assert 'class="credits_overlay hidden"' in home_html
+
+@pytest.mark.django_db
+def test_menu_art_has_all_four_states(home_html):
+    for attr in ("data-lbs-on", "data-lbs-off", "data-kgs-on", "data-kgs-off"):
+        assert attr in home_html
+    for el_id in ("musicBtn", "lbsBtn", "kgsBtn"):
+        assert f'id="{el_id}"' in home_html
+=======
 
     
 
@@ -216,3 +232,4 @@ def test_hud_shows_repkin_mood_and_color(home_html):
 
 
 
+>>>>>>> origin/main
