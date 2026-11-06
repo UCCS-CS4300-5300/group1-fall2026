@@ -16,7 +16,7 @@
             font: inherit;
         }
         .practice-panel {
-            position: fixed;
+            position: absolute;
             right: 1rem;
             bottom: 1rem;
             z-index: 5;
@@ -30,6 +30,7 @@
             border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 6px;
             font-family: system-ui, sans-serif;
+
         }
         .practice-panel h1 {
             margin: 0 0 0.75rem;
@@ -59,6 +60,7 @@
         .practice-panel button:disabled {
             cursor: wait;
             opacity: 0.7;
+            
         }
         .practice-result {
             min-height: 1.5em;
@@ -73,29 +75,40 @@
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
 
-<!--Locker Room Button-->
-<a href="{% url 'core:locker_room' %}" class="locker-room-btn" id="locker-room-btn"></a>
+        <!--Locker Room Button-->
+        <a href="{% url 'core:locker_room' %}" class="locker-room-btn" id="locker-room-btn"></a>
 
-<button class="main_menu_button"
-        id="mainMenuButton"
-        aria-label="Open menu"
-        aria-expanded="false">
-</button>
+        <button class="main_menu_button"
+                id="mainMenuButton"
+                aria-label="Open menu"
+                aria-expanded="false">
+        </button>
 
-<div class="repkin-summary">
-    <p>Signed in as {{ user.username }}</p>
-    <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+        <div class="repkin-summary">
+            <p>Signed in as {{ user.username }}</p>
+            <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+        </div>
 
-    <button
-        type="button"
-        id="log-exercise-btn"
-        data-exercise-modal="exercise-modal">
-        Log Exercise
-    </button>
-</div>
+        <!-- Exercise Logging -->
+        <button type="button" id="log-exercise-btn" class="stage_button" aria-label="Log Exercise" aria-haspopup="dialog"
+                style="--l:62%; --t:0.6%; --w:13.8%; --h:7.6%"></button>
+            <section id="practice-panel" class="practice-panel" hidden aria-labelledby="practice-title">
+                <h1 id="practice-title">Practice data check</h1>
+                <form id="practice-data-form" method="post" action="{% url 'core:practice_data' %}">
+                    {% csrf_token %}
+                    <label for="practice-pushups">Sample push-up count</label>
+                    <input id="practice-pushups" name="practice_pushups" type="number" min="0" max="10000" value="7" required>
+                    <button type="submit">Save sample</button>
+                </form>
+                <button id="load-practice-data" type="button">Load saved value</button>
+                <p id="practice-result" class="practice-result" role="status" aria-live="polite">Nothing saved yet.</p>
+            </section>
 
-    <div id="mainMenu" class="main_menu hidden">
-    <div class="menu_panel">
+        <!-- Practice Data -->
+
+
+        <div id="mainMenu" class="main_menu hidden">
+        <div class="menu_panel">
 
 
         <img id="menuArt"
@@ -175,23 +188,11 @@
                 style="--l:40.8%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
         <button type="button" id="kgsBtn" class="menu_field" aria-label="Kilograms" aria-pressed="false"
                 style="--l:46.9%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
+    
+
     </div>
 </div>
-    </div>
-
-    <main>
-        <section class="practice-panel" aria-labelledby="practice-title">
-            <h1 id="practice-title">Practice data check</h1>
-            <form id="practice-data-form" method="post" action="{% url 'core:practice_data' %}">
-                {% csrf_token %}
-                <label for="practice-pushups">Sample push-up count</label>
-                <input id="practice-pushups" name="practice_pushups" type="number" min="0" max="10000" value="7" required>
-                <button type="submit">Save sample</button>
-            </form>
-            <button id="load-practice-data" type="button">Load saved value</button>
-            <p id="practice-result" class="practice-result" role="status" aria-live="polite">Nothing saved yet.</p>
-        </section>
-    </main>
+</div>
 
     <script src="{% static 'core/practice_data.js' %}" defer></script>
     {% include "core/_repkin_modals.html" %}
@@ -280,32 +281,31 @@
         }
     });
 
-    /* Music and Unit Toggles */
-    const menuArt = document.getElementById("menuArt");
-    const music = document.getElementById("bg-music");
-    const musicBtn = document.getElementById("musicBtn");
-    const lbsBtn = document.getElementById("lbsBtn");
-    const kgsBtn = document.getElementById("kgsBtn");
-    let unit = "lbs";
-    let musicOn = true;
-
-    function renderMenuArt() {
-        menuArt.src = menuArt.dataset[unit + (musicOn ? "On" : "Off")];
-        musicBtn.setAttribute("aria-pressed", String(musicOn));
-        lbsBtn.setAttribute("aria-pressed", String(unit === "lbs"));
-        kgsBtn.setAttribute("aria-pressed", String(unit === "kgs"));
-        if (musicOn) { music.play().catch(() => {}); } else { music.pause(); }
-    }
-
-    musicBtn.addEventListener("click", () => { musicOn = !musicOn; renderMenuArt(); });
-    lbsBtn.addEventListener("click", () => { unit = "lbs"; renderMenuArt(); });
-    kgsBtn.addEventListener("click", () => { unit = "kgs"; renderMenuArt(); });
-
-    // browsers block autoplay with sound, so start on the first click if music is on
-    document.addEventListener("pointerdown", () => {
-        if (musicOn && music.paused) music.play().catch(() => {});
-    }, { once: true });
     </script>
+
+<!-- Logging Exercise Panel-->
+<script>
+    document.getElementById("log-exercise-btn").addEventListener("click", () => {
+        document.getElementById("practice-panel").hidden = false;
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") document.getElementById("practice-panel").hidden = true;
+    });
+</script>
+
+<!-- Practice Data Panel -->
+<script>
+    const practicePanel = document.getElementById("practice-panel");
+    document.getElementById("log-exercise-btn").addEventListener("click", () => {
+        practicePanel.hidden = false;
+    });
+    document.getElementById("close-practice").addEventListener("click", () => {
+        practicePanel.hidden = true;
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") practicePanel.hidden = true;
+    });
+</script>
 
 <script src="{% static 'js/main_menu.js' %}"></script>
 </body>

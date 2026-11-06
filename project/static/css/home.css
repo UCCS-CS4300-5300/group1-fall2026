@@ -301,16 +301,22 @@ button.menu_field {
     z-index: 5;
 }
 
-/*Workout Logging */
-    .repkin-summary {
-            position: absolute;
-            left: 1rem;
-            bottom: 1rem;
-            z-index: 2;
-            max-width: 65%;
-            padding: 0.75rem;
-            color: #f7f7f2;
-            background: rgba(22, 31, 29, 0.88);
-            border-radius: 6px;
-            font-family: system-ui, sans-serif;
-        }
+
+.repkin-summary {
+    position: absolute;
+    left: 3%;
+    top: 10%;
+    z-index: 2;
+    padding: 0.4rem 0.6rem;
+    color: #f7f7f2;
+    background: rgba(22, 31, 29, 0.88);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+#exercise-modal .practice-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin-top: 1rem;
+}

@@ -261,3 +261,15 @@ def test_welcome_popup_is_home_only(logged_in_client):
 def test_locker_room_requires_login(client):
     response = client.get(reverse("core:locker_room"))
     assert response.status_code == 302
+
+@pytest.mark.django_db
+def test_dumbbell_button_and_hidden_practice_panel(home_html):
+    assert home_html.count('id="log-exercise-btn"') == 1
+    tag = home_html.split('id="practice-panel"', 1)[1].split(">", 1)[0]
+    assert "hidden" in tag
+    
+@pytest.mark.django_db
+def test_dumbbell_button_and_panel_start_hidden(home_html):
+    assert home_html.count('id="log-exercise-btn"') == 1
+    tag = home_html.split('id="practice-panel"', 1)[1].split(">", 1)[0]
+    assert "hidden" in tag

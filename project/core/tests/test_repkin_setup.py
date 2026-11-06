@@ -62,7 +62,7 @@ def test_home_contains_setup_form_posting_to_setup_url(logged_in_client):
                   b'name="favorite_activity"', b'name="favorite_food"'):
         assert field in response.content
 
-
+#Changed because customize button moved
 @pytest.mark.django_db
 def test_customize_button_is_always_available(logged_in_client):
     response = logged_in_client.get(reverse("core:locker_room"))
