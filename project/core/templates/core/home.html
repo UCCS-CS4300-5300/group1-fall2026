@@ -8,18 +8,6 @@
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <style>
-        .repkin-summary {
-            position: absolute;
-            left: 1rem;
-            bottom: 1rem;
-            z-index: 2;
-            max-width: 65%;
-            padding: 0.75rem;
-            color: #f7f7f2;
-            background: rgba(22, 31, 29, 0.88);
-            border-radius: 6px;
-            font-family: system-ui, sans-serif;
-        }
         .repkin-summary p {
             margin: 0 0 0.5rem;
         }
@@ -79,22 +67,14 @@
     </style>
 </head>
 <body>
-        <!-- This is duplicated, Since the styling is different. I'm not sure which one we want to keep.  -->
-
-        <!-- <div class="user_text">
-            <p class="user_name">Signed in as <strong>{{ user.username }}</strong></p>
-            <p class="user_repkin">
-                {{ user.username }}'s Repkin: mood {{ repkin.mood }}, color
-                <span class="repkin_color" style="color: {{ repkin.color }}">{{ repkin.color }}</span>
-            </p>
-        </div> -->
-
 
     <div class="stage">
 
-        <button class= "customize-btn" type="button" id="customize-btn">Customize RepKin</button>
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+
+<!--Locker Room Button-->
+<a href="{% url 'core:locker_room' %}" class="locker-room-btn" id="locker-room-btn"></a>
 
 <button class="main_menu_button"
         id="mainMenuButton"
@@ -130,53 +110,43 @@
                 style="--l:85%; --t:5.2%; --w:5.2%; --h:4.6%"></button>
 
         <!-- Name -->
-        <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current name"
-            style="--l:55.5%; --t:14.7%; --w:20%; --h:2.7%">
+        <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current Repkin name"
+            style="--l:55.5%; --t:19.7%; --w:20%; --h:2.7%">
         <form class="menu_form">
-            <input class="menu_field" name="name" aria-label="Change name"
-                style="--l:55.5%; --t:18.6%; --w:20%; --h:2.7%">
-            <button type="submit" class="menu_field" aria-label="Submit name"
-                    style="--l:68%; --t:21.4%; --w:8%; --h:1.8%"></button>
+            <input class="menu_field" name="name" aria-label="Change Repkin name"
+                style="--l:55.5%; --t:23.3%; --w:20%; --h:2.7%">
+            <button type="submit" class="menu_field" aria-label="Submit Repkin name"
+                    style="--l:68%; --t:26%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Username -->
-        <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current username"
-            style="--l:55.5%; --t:24.8%; --w:20%; --h:2.7%">
+        <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current  username"
+            style="--l:55.5%; --t:32%; --w:20%; --h:2.7%">
         <form class="menu_form">
             <input class="menu_field" name="username" aria-label="Change username"
-                style="--l:55.5%; --t:28.3%; --w:20%; --h:2.7%">
+                style="--l:55.5%; --t:35.5%; --w:20%; --h:2.7%">
             <button type="submit" class="menu_field" aria-label="Submit username"
-                    style="--l:68%; --t:30.9%; --w:8%; --h:1.8%"></button>
-        </form>
-
-        <!-- Password -->
-        <form class="menu_form">
-            <input class="menu_field" type="password" name="confirm_password" aria-label="Confirm password"
-                style="--l:55.6%; --t:34.7%; --w:20%; --h:2.7%">
-            <input class="menu_field" type="password" name="new_password" aria-label="Change password"
-                style="--l:55.7%; --t:38.5%; --w:20%; --h:2.7%">
-            <button type="submit" class="menu_field" aria-label="Submit password"
-                    style="--l:69%; --t:41%; --w:8%; --h:1.8%"></button>
+                    style="--l:68%; --t:38.5%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Height -->
         <input class="menu_field" readonly aria-label="Current height"
-            style="--l:55.9%; --t:47.0%; --w:20%; --h:2.7%">
+            style="--l:55.9%; --t:48.5%; --w:20%; --h:2.7%">
         <form class="menu_form">
             <input class="menu_field" name="height" aria-label="Update height"
-                style="--l:55.8%; --t:50.7%; --w:20%; --h:2.7%">
+                style="--l:55.8%; --t:52%; --w:20%; --h:2.7%">
             <button type="submit" class="menu_field" aria-label="Submit height"
-                    style="--l:69%; --t:53.6%; --w:8%; --h:1.8%"></button>
+                    style="--l:69%; --t:54.5%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Weight -->
         <input class="menu_field" readonly aria-label="Current weight"
-            style="--l:56.2%; --t:56.6%; --w:20%; --h:2.6%">
+            style="--l:55.9%; --t:61.1%; --w:20%; --h:2.6%">
         <form class="menu_form">
             <input class="menu_field" name="weight" aria-label="Update weight"
-                style="--l:55.9%; --t:60.1%; --w:20%; --h:2.6%">
+                style="--l:55.9%; --t:64.5%; --w:20%; --h:2.4%">
             <button type="submit" class="menu_field" aria-label="Submit weight"
-                    style="--l:69%; --t:63%; --w:8%; --h:1.8%"></button>
+                    style="--l:69%; --t:67%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Bottom buttons -->
@@ -184,7 +154,8 @@
                 style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
         <form method="post" action="{% url 'core:logout' %}">
             {% csrf_token %}
-            <button type="submit">Log out</button>
+            <button type="submit" class="menu_field" aria-label="Log out"
+                    style="--l:77.5%; --t:88.7%; --w:12%; --h:3.7%"></button>
         </form>
 
         <!-- Credits button (invisible, over the drawn Credits box) -->
@@ -207,8 +178,6 @@
     </div>
 </div>
     </div>
-</div>
-    </div>
 
     <main>
         <section class="practice-panel" aria-labelledby="practice-title">
@@ -224,94 +193,6 @@
         </section>
     </main>
 
-    <script>
-        const menu = document.getElementById("mainMenu");
-        const menuButton = document.getElementById("mainMenuButton");
-
-        menuButton.addEventListener("click", () => {
-            const isOpen = menu.classList.toggle("hidden") === false;
-            menuButton.setAttribute("aria-expanded", String(isOpen));
-        });
-
-        menu.addEventListener("click", (event) => {
-            if (event.target === menu) {
-                menu.classList.add("hidden");
-                menuButton.setAttribute("aria-expanded", "false");
-            }
-        });
-        const menuForm = document.getElementById("menuForm");
-        const menuInput = document.getElementById("menuInput");
-        const menuDisplay = document.getElementById("menuDisplay");
-
-
-        function openMenu()  { menu.classList.remove("hidden"); }
-        function closeMenu() { menu.classList.add("hidden"); creditsOverlay.classList.add("hidden"); }
-
-        //close on click outside of menu
-        menu.addEventListener("click", (e) => {
-            if (e.target === menu) closeMenu();
-        });
-
-        // close on Escape
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeMenu();
-        });
-
-        //close on click of exit button
-        document.getElementById("menuExitButton").addEventListener("click", closeMenu);
-
-        document.querySelectorAll(".menu_form").forEach((form) => {
-        form.addEventListener("submit", (e) => e.preventDefault());
-        });
-
-        /*Credits Handling*/
-        const creditsOverlay= document.getElementById("creditsOverlay");
-
-        document.getElementById("creditsButton").addEventListener("click", () => {
-            creditsOverlay.classList.remove("hidden");
-        });
-
-        creditsOverlay.addEventListener("click", (e) => {
-            e.stopPropagation();
-            creditsOverlay.classList.add("hidden");
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                menu.classList.add("hidden");
-                menuButton.setAttribute("aria-expanded", "false");
-            }
-        });
-        const menuForm = document.getElementById("menuForm");
-        const menuInput = document.getElementById("menuInput");
-        const menuDisplay = document.getElementById("menuDisplay");
-
-
-        function openMenu()  { menu.classList.remove("hidden"); }
-        function closeMenu() { menu.classList.add("hidden"); }
-
-        //The code below is probably causing the settings page to close.
-        //TODO: investigate the bug
-        // document.getElementById("mainMenuButton").addEventListener("click", () => {
-        //     menu.classList.toggle("hidden");
-        // });
-
-        // close when clicking the dark backdrop, not the menu art itself
-        menu.addEventListener("click", (e) => {
-            if (e.target === menu) closeMenu();
-        });
-
-        // close on Escape
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeMenu();
-        });
-
-        document.getElementById("menuExitButton").addEventListener("click", closeMenu);
-
-        document.querySelectorAll(".menu_form").forEach((form) => {
-        form.addEventListener("submit", (e) => e.preventDefault());
-        });
-    </script>
     <script src="{% static 'core/practice_data.js' %}" defer></script>
     {% include "core/_repkin_modals.html" %}
     {% include "core/_exercise_modal.html" %}
@@ -426,7 +307,6 @@
     }, { once: true });
     </script>
 
-<a href="locker_room.html" class= "locker_room_page_button"></a>
-    
+<script src="{% static 'js/main_menu.js' %}"></script>
 </body>
 </html>

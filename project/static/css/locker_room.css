@@ -1,20 +1,8 @@
-.html {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    background: #111;
-}
-
-.body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
 .user-base-gif {
     position: absolute;
-    left: 50%;
-    top: 83%;
+    left: 42%;
+    top: 84%;
     width: 20%;
     transform: translate(-50%, -50%);
     image-rendering: pixelated;
@@ -140,4 +128,25 @@ input.menu_field {
 .main_menu_exit_button:focus-visible,
 .main_menu_submit:focus-visible {
     outline: 2px solid #b79cff;
+}
+
+.home-page-btn {
+    position: absolute;
+    left: 62.5%;
+    top: 1%;
+    width: 12.5%;
+    height: 7%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
+}
+.stats-bar {
+    position: absolute;
+    left: 51%;
+    top: 14%;
+    width: 35%;
+    height: 14%;
+    z-index: 5;
 }
