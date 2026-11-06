@@ -16,4 +16,5 @@ urlpatterns = [
     path("create-account/", views.account_creation, name="account_creation"),
     path("repkin/setup/", views.repkin_setup, name="repkin_setup"),
     path("exercises/submit/", submit_exercise, name="submit_exercise"),
+    path("locker-room/", views.locker_room, name="locker_room"),
 ]

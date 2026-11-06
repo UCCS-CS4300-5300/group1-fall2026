@@ -90,8 +90,8 @@
     <div id="signup-error" class="signup-error" role="alert" hidden></div>
 
     <form id="firebase-signup-form"
-          data-firebase-auth="signup"
-          data-session-url="{% url 'core:firebase_session' %}">
+            data-firebase-auth="signup"
+            data-session-url="{% url 'core:firebase_session' %}">
         {% csrf_token %}
         <div class="signup-field">
             <label for="signup-email">Email</label>

@@ -25,6 +25,20 @@ body {
     width: min(100vw, calc(100vh * 9 / 16));
 }
 
+.stage_button{
+position: absolute;
+    left: var(--l);
+    top: var(--t);
+    width: var(--w);
+    height: var(--h);
+    z-index: 5;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+}
+
 .room {
     width: 100%;
     height: 100%;
@@ -78,11 +92,9 @@ body {
 
 .customize-btn{
     position: absolute;
-    left:46%;
+    left:100%;
     top: 1%;
-
 }
-
 .main_menu_button {
     position: absolute;
     left: 78%;
@@ -119,6 +131,11 @@ body {
     width: 100%;
     height: auto;
     image-rendering: pixelated;
+}
+
+
+.user_display_screen {
+    position:absolute; 
 }
 
 /* Using a template overaly for better configuration with spacing on the page */
@@ -177,4 +194,129 @@ input.menu_field {
 .main_menu_submit:focus-visible {
     outline: 2px solid #b79cff;
 }
+.locker_room_page_button{
+    background: transparent;
+    border-radius: 10px;
+    border-color: red;
+    position: absolute;
+    top: 1%;
+    left: 30%;
+    cursor:pointer;
+}
 
+.locker_room:hover{
+    background-color: magenta;
+    cursor: pointer;
+}
+
+.locker_room:active{
+    background-color: yellow;
+    cursor: pointer;
+}
+
+/* Credits Control */
+.credits_button{
+    position: absolute;
+    left: 1%;
+    top: 1%;
+    width: 8%;
+    height: 5%;
+    background: transparent;
+    border: 20px solid;
+    border-color:yellow;
+    border-radius: 10px;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
+}
+
+.credits_overlay {
+    position: absolute;    /* out of the flow: no more pushing */
+    inset: 0;              /* covers exactly the menu panel */
+    z-index: 10;
+}
+
+.credits_overlay.hidden {
+    display: none;
+}
+
+.credits_png {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.credits_exit_button {
+    position: absolute;
+    left: 85%;
+    top: 9%;
+    width: 6%;
+    height: 6%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
+}
+
+button.menu_field {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+/* Music Control */
+
+.music_control_button {
+    position: absolute;
+    left: 1%;
+    top: 8%;
+    width: 8%;
+    height: 5%;
+    background: transparent;
+    border: 4px solid;
+    border-color: yellow;
+    border-radius: 12px;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
+}
+
+/* Locker Room Button */
+.locker-room-btn {
+    position: absolute;
+    left: 45%;
+    top: 1%;
+    width: 13%;
+    height: 7%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
+}
+
+
+.repkin-summary {
+    position: absolute;
+    left: 3%;
+    top: 10%;
+    z-index: 2;
+    padding: 0.4rem 0.6rem;
+    color: #f7f7f2;
+    background: rgba(22, 31, 29, 0.88);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+#exercise-modal .practice-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin-top: 1rem;
+}

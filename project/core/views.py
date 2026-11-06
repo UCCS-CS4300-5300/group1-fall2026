@@ -172,5 +172,16 @@ def render_home(request, repkin, setup_form, open_setup=False):
         "repkin": repkin,
         "setup_form": setup_form,
         "open_setup": open_setup,
+        "show_welcome": True,
     }
     return render(request, "core/home.html", context)
+
+#Second Page Request#
+@login_required
+def locker_room(request):
+    repkin = get_repkin(request.user)
+    context = {
+        "repkin": repkin,
+        "setup_form": RepkinSetupForm(instance=repkin),
+    }
+    return render(request, "core/locker_room.html", context)
