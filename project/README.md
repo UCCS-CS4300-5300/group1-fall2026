@@ -57,6 +57,14 @@ python manage.py shell
 from core.ollama_client import chat
 chat([{"role": "user", "content": "<EXAMPLE_QUERY>"}])
 
+from django.contrib.auth import get_user_model
+from core.repkin_voice import generate_message
+user = get_user_model().objects.first()
+generate_message(user, "greeting")
+generate_message(user, "idle")
+
+ollama create repkin-companion -f ./Modelfile
+
 
 - When pulling the firebase login changes from main, there are a few things to do:
 1. git switch main
