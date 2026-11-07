@@ -52,6 +52,11 @@ Do not rebuild infrastructure that already works. Use this baseline to reach one
 # Windows command for firebase:
 - $env:FIREBASE_CREDENTIALS_PATH = "$((Get-Item .).FullName)/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json"
 
+# Ollama commands:
+python manage.py shell
+from core.ollama_client import chat
+chat([{"role": "user", "content": "<EXAMPLE_QUERY>"}])
+
 
 - When pulling the firebase login changes from main, there are a few things to do:
 1. git switch main
