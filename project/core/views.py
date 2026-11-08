@@ -12,6 +12,7 @@ from .firebase_auth import get_firestore_client, verify_firebase_id_token
 from .forms import RepkinSetupForm
 from .models import StarterItem
 from .models_repkin import Repkin
+from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
 
 logger = logging.getLogger(__name__)
 
@@ -180,8 +181,12 @@ def render_home(request, repkin, setup_form, open_setup=False):
 @login_required
 def locker_room(request):
     repkin = get_repkin(request.user)
+    arm_level = parse_arm_level(request.GET.get("arms"))
     context = {
         "repkin": repkin,
         "setup_form": RepkinSetupForm(instance=repkin),
+        "arm_level": arm_level,
+        "arm_gif": ARM_VERSIONS[arm_level],
+        "next_arms": next_arm_level(arm_level),
     }
     return render(request, "core/locker_room.html", context)

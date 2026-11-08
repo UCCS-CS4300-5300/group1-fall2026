@@ -15,11 +15,16 @@
     <div class="stage">
         <img src="{%static 'img/stat_bars.png'%}" alt="Status bar" class="stats-bar">
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
-        <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+        <img src="{% static arm_gif %}" alt="Repkin" class="user-base-gif" id="repkin-sprite">
 
         <!-- Home page return button -->
         <a href="{% url 'core:home' %}" class="home-page-btn" id="home-page-btn"
             aria-label="Back to workout room"></a>
+
+        <!-- Arms arrow: switches to the next arm version (invisible, over the drawn arrow) -->
+        <a href="?arms={{ next_arms }}" id="arms-arrow-btn" class="stage_button"
+            aria-label="Change Repkin arms"
+            style="display:block; --l:80.5%; --t:75.7%; --w:17.5%; --h:5.6%"></a>
 
 
         <button class="main_menu_button"
@@ -28,11 +33,11 @@
             aria-expanded="false">
         </button>
 
-        <button type="button" id="customize-btn" class="stage_button" aria-haspopup="dialog" 
+        <button type="button" id="customize-btn" class="stage_button" aria-haspopup="dialog"
             style="--l:46%; --t:0.8%; --w:14.5%; --h:7.8%">
         </button>
 
-!<!-- Main Menu -->
+<!-- Main Menu -->
     <div id="mainMenu" class="main_menu hidden">
         <div class="menu_panel">
 
