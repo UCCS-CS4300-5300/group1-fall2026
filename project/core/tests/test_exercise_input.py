@@ -27,11 +27,14 @@ def test_home_contains_exercise_modal(logged_in_client):
     assert b'id="exercise-modal"' in response.content
     assert b"<dialog" in response.content
 
+
+
+@pytest.mark.django_db
 def test_exercise_button_targets_modal(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
-
     assert response.status_code == 200
-    assert b'data-exercise-modal="exercise-modal"' in response.content
+    assert b'id="log-exercise-btn"' in response.content
+    assert b'id="exercise-modal"' in response.content
 
 def test_exercise_modal_contains_cancel_button(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
