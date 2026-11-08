@@ -21,8 +21,9 @@ body {
 
 .stage {
     position: relative;
-    aspect-ratio: 9 / 16;
-    width: min(100vw, calc(100vh * 9 / 16));
+    width: min(100vw, calc(100dvh * 9 / 16));
+    height: min(100dvh, calc(100vw * 16 / 9));
+    flex: 0 0 auto;
 }
 
 .stage_button{
@@ -48,11 +49,11 @@ position: absolute;
 .user_text { display: none; }
 
     @media (min-aspect-ratio: 1/1) {
-        .user_text {   
+        .user_text {
             display: block;
-            position: fixed; 
-            top: 8px; 
-            left: 8px; 
+            position: fixed;
+            top: 8px;
+            left: 8px;
             background: #d9d9d9;
             border-radius: 8px;
             color: #1c2430 ;z-index: 200;
@@ -135,7 +136,7 @@ position: absolute;
 
 
 .user_display_screen {
-    position:absolute; 
+    position:absolute;
 }
 
 /* Using a template overaly for better configuration with spacing on the page */
@@ -146,20 +147,20 @@ position: absolute;
     width: var(--w);
     height: var(--h);
     box-sizing: border-box;
-    margin: 0; 
+    margin: 0;
     background: transparent;
 }
 
 .main_menu_exit_button, .main_menu_display, .main_menu_input, .main_menu_submit {
     position: absolute;
     box-sizing: border-box;
-} 
+}
 
 input.menu_field {
     background: transparent;
     border: 0;
     padding: 0 2%;
-    color: #1c2430;         
+    color: #1c2430;
     font: inherit;
     font-size: clamp(9px, 1.6vw, 14px);
 }
