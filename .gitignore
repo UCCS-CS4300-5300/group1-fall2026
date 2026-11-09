@@ -17,3 +17,4 @@ quality-evidence/
 # Python-generated cache files
 __pycache__/
 *.pyc
+project/setup.cfg
