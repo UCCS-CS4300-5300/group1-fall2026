@@ -7,6 +7,7 @@
     <audio id="bg-music" src="{% static 'audio/ES_Casanova_Instrumental.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
+    <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
     <style>
         .repkin-summary p {
             margin: 0 0 0.5rem;
@@ -74,6 +75,7 @@
 
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
         <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+        {% include "core/_repkin_bubble.html" %}
 
         <!--Locker Room Button-->
         <a href="{% url 'core:locker_room' %}" class="locker-room-btn" id="locker-room-btn"></a>
@@ -257,6 +259,9 @@
                     if (response.ok && result.success === true) {
                         exerciseFeedback.textContent =
                             "Exercise submitted successfully!";
+                            document.dispatchEvent(new CustomEvent("exercise:logged", {
+                                detail: { logIds: [result.log_id] }
+                            }));
 
                         // We'll reset the modal after backend integration.
                     } else if (response.status === 400) {

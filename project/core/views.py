@@ -14,6 +14,8 @@ from .models import StarterItem
 from .models_repkin import Repkin
 from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
 
+from .views_message import GREETING_PENDING_KEY
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_REPKIN = {"mood": "content", "color": "green"}
@@ -70,6 +72,7 @@ def firebase_session(request):
         user.save(update_fields=["password"])
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    request.session[GREETING_PENDING_KEY] = True
     return JsonResponse({"redirectUrl": "/"})
 
 

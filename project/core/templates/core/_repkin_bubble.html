@@ -1,0 +1,10 @@
+{% load static %}
+{# RepKin's speech bubble. It stays hidden until repkin_bubble.js has a message. #}
+<div id="repkin-bubble" class="repkin-bubble" hidden
+     role="status" aria-live="polite"
+     data-message-url="{% url 'core:repkin_message' %}"
+     data-csrf-token="{{ csrf_token }}">
+    <p class="repkin-bubble__text"></p>
+    <button type="button" class="repkin-bubble__close" aria-label="Dismiss message">&times;</button>
+</div>
+<script src="{% static 'core/repkin_bubble.js' %}" defer></script>

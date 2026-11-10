@@ -1,3 +1,5 @@
+import math
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import Client
@@ -8,8 +10,13 @@ from core.models_exercise import ExerciseLog
 from core.models_repkin import Repkin
 from core.ollama_client import OllamaUnavailable
 from core.repkin_voice import FALLBACK_LINES
+from core.views_message import COOLDOWN_SECONDS, GREETING_PENDING_KEY, MAX_LOG_IDS
 
 URL = "core:repkin_message"
+
+# These tests read the tunable numbers from views_message.py, so changing a
+# cooldown or limit there never breaks them.
+IDLE_COOLDOWN = COOLDOWN_SECONDS["idle"]
 
 
 # --- helpers ---------------------------------------------------------------
@@ -61,8 +68,19 @@ def clock(monkeypatch):
     return state
 
 
+def owe_greeting(client):
+    """Do what logging in does: mark this session as owed one greeting."""
+    session = client.session
+    session[GREETING_PENDING_KEY] = True
+    session.save()
+
+
 def ask(client, kind="idle", **extra):
     return client.post(reverse(URL), {"kind": kind, **extra})
+
+
+def wait_out_the_cooldown(clock):
+    clock["now"] += max(COOLDOWN_SECONDS.values())
 
 
 # --- who may ask, and how ----------------------------------------------------
@@ -87,7 +105,7 @@ def test_get_requests_are_not_allowed(logged_in_client, fake_chat):
 def test_csrf_protection_is_on(user, fake_chat):
     client = Client(enforce_csrf_checks=True)
     client.force_login(user)
-    response = client.post(reverse(URL), {"kind": "greeting"})
+    response = client.post(reverse(URL), {"kind": "idle"})
     assert response.status_code == 403
     assert fake_chat["prompts"] == []
 
@@ -97,9 +115,7 @@ def test_a_csrf_token_in_the_request_body_is_accepted(user, repkin, fake_chat):
     client.force_login(user)
     client.get(reverse("core:home"))  # the page sets the csrftoken cookie
     token = client.cookies["csrftoken"].value
-    response = client.post(
-        reverse(URL), {"kind": "greeting", "csrfmiddlewaretoken": token}
-    )
+    response = client.post(reverse(URL), {"kind": "idle", "csrfmiddlewaretoken": token})
     assert response.status_code == 200
 
 
@@ -114,7 +130,9 @@ def test_a_missing_or_unknown_kind_is_rejected(logged_in_client, fake_chat, bad)
     assert fake_chat["prompts"] == []
 
 
-@pytest.mark.parametrize("bad", ["abc", "-1", "1.5", "", " 1", "²", "٣", "３", "9" * 30, "1; DROP"])
+@pytest.mark.parametrize(
+    "bad", ["abc", "-1", "1.5", "", " 1", "²", "٣", "３", "9" * 30, "1; DROP"]
+)
 def test_workout_ids_that_are_not_plain_whole_numbers_are_rejected(
     logged_in_client, fake_chat, bad
 ):
@@ -123,17 +141,17 @@ def test_workout_ids_that_are_not_plain_whole_numbers_are_rejected(
     assert fake_chat["prompts"] == []
 
 
-def test_a_workout_may_name_up_to_twenty_exercises_but_not_more(
+def test_a_workout_may_name_up_to_the_limit_but_not_more(
     logged_in_client, repkin, fake_chat, clock
 ):
-    twenty = [str(n) for n in range(1, 21)]
-    assert ask(logged_in_client, "workout", log_ids=twenty).status_code == 200
-    twenty_one = [str(n) for n in range(1, 22)]
-    assert ask(logged_in_client, "workout", log_ids=twenty_one).status_code == 400
+    at_the_limit = [str(n) for n in range(1, MAX_LOG_IDS + 1)]
+    assert ask(logged_in_client, "workout", log_ids=at_the_limit).status_code == 200
+    over_the_limit = [str(n) for n in range(1, MAX_LOG_IDS + 2)]
+    assert ask(logged_in_client, "workout", log_ids=over_the_limit).status_code == 400
 
 
 def test_exercise_ids_are_ignored_for_other_kinds(logged_in_client, repkin, fake_chat):
-    response = ask(logged_in_client, "greeting", log_ids="not-a-number")
+    response = ask(logged_in_client, "idle", log_ids="not-a-number")
     assert response.status_code == 200
 
 
@@ -141,6 +159,7 @@ def test_exercise_ids_are_ignored_for_other_kinds(logged_in_client, repkin, fake
 
 @pytest.mark.parametrize("kind", ["greeting", "workout", "idle"])
 def test_each_kind_returns_a_message_as_json(logged_in_client, repkin, fake_chat, kind):
+    owe_greeting(logged_in_client)
     response = ask(logged_in_client, kind)
     assert response.status_code == 200
     assert response["Content-Type"] == "application/json"
@@ -150,12 +169,81 @@ def test_each_kind_returns_a_message_as_json(logged_in_client, repkin, fake_chat
 def test_when_ollama_is_down_the_user_still_gets_a_message(
     logged_in_client, repkin, fake_chat
 ):
+    owe_greeting(logged_in_client)
     fake_chat["reply"] = OllamaUnavailable("not running")
     response = ask(logged_in_client, "greeting")
     assert response.status_code == 200
     body = response.json()
     assert body["fallback"] is True
     assert body["message"] in FALLBACK_LINES["greeting"]
+
+
+# --- one greeting per login ---------------------------------------------------
+
+def test_a_login_is_greeted_once(logged_in_client, repkin, fake_chat):
+    owe_greeting(logged_in_client)
+    first = ask(logged_in_client, "greeting")
+    assert first.json()["message"] == "You crushed it!"
+
+    second = ask(logged_in_client, "greeting")
+    assert second.status_code == 200
+    assert second.json() == {
+        "message": None, "kind": "greeting", "fallback": False, "reason": "already_greeted",
+    }
+    assert len(fake_chat["prompts"]) == 1            # the model was asked only once
+
+
+def test_no_greeting_is_given_if_none_is_owed(logged_in_client, repkin, fake_chat):
+    response = ask(logged_in_client, "greeting")
+    assert response.json()["message"] is None
+    assert fake_chat["prompts"] == []
+
+
+def test_a_fresh_login_is_owed_a_fresh_greeting_even_a_moment_later(
+    logged_in_client, repkin, fake_chat, clock
+):
+    owe_greeting(logged_in_client)
+    assert ask(logged_in_client, "greeting").json()["message"] is not None
+    # Log out and straight back in: the same instant on the clock.
+    owe_greeting(logged_in_client)
+    assert ask(logged_in_client, "greeting").json()["message"] is not None
+    assert len(fake_chat["prompts"]) == 2
+
+
+def test_the_greeting_is_used_up_even_when_ollama_is_down(
+    logged_in_client, repkin, fake_chat
+):
+    owe_greeting(logged_in_client)
+    fake_chat["reply"] = OllamaUnavailable("down")
+    assert ask(logged_in_client, "greeting").json()["fallback"] is True
+    assert ask(logged_in_client, "greeting").json()["message"] is None
+
+
+def test_other_kinds_do_not_use_up_the_greeting(logged_in_client, repkin, fake_chat):
+    owe_greeting(logged_in_client)
+    ask(logged_in_client, "idle")
+    ask(logged_in_client, "workout")
+    assert ask(logged_in_client, "greeting").json()["message"] is not None
+
+
+def test_a_bad_request_does_not_use_up_the_greeting(logged_in_client, repkin, fake_chat):
+    owe_greeting(logged_in_client)
+    ask(logged_in_client, "gossip")
+    ask(logged_in_client, "workout", log_ids="abc")
+    assert ask(logged_in_client, "greeting").json()["message"] is not None
+
+
+def test_one_persons_greeting_is_not_used_up_by_another(
+    user, other_user, repkin, fake_chat
+):
+    first, second = Client(), Client()
+    first.force_login(user)
+    second.force_login(other_user)
+    owe_greeting(first)
+    owe_greeting(second)
+    assert ask(first, "greeting").json()["message"] is not None
+    assert ask(first, "greeting").json()["message"] is None
+    assert ask(second, "greeting").json()["message"] is not None
 
 
 # --- the right person's data -------------------------------------------------
@@ -196,7 +284,8 @@ def test_other_peoples_data_never_appears_whatever_kind_is_asked(
     )
     ExerciseLog.objects.create(user=other_user, exercise_type="running", distance_miles="5.00")
     for kind in ("greeting", "workout", "idle"):
-        clock["now"] += 100
+        owe_greeting(logged_in_client)
+        wait_out_the_cooldown(clock)
         ask(logged_in_client, kind)
     assert len(fake_chat["prompts"]) == 3
     for prompt in fake_chat["prompts"]:
@@ -212,7 +301,8 @@ def test_asking_for_a_message_changes_nothing_in_the_database(
     ExerciseLog.objects.create(user=user, exercise_type="push_ups", sets=3, reps=10)
     before = (Repkin.objects.count(), ExerciseLog.objects.count(), User.objects.count())
     for kind in ("greeting", "workout", "idle"):
-        clock["now"] += 100
+        owe_greeting(logged_in_client)
+        wait_out_the_cooldown(clock)
         ask(logged_in_client, kind)
     after = (Repkin.objects.count(), ExerciseLog.objects.count(), User.objects.count())
     assert before == after
@@ -225,7 +315,7 @@ def test_the_next_prompt_includes_the_previous_message(
 ):
     fake_chat["reply"] = "Keep going, champ!"
     ask(logged_in_client, "idle")
-    clock["now"] += 100
+    wait_out_the_cooldown(clock)
     ask(logged_in_client, "idle")
     assert "Keep going, champ!" not in fake_chat["prompts"][0]
     assert "Keep going, champ!" in fake_chat["prompts"][1]
@@ -250,17 +340,19 @@ def test_each_session_has_its_own_memory(user, other_user, repkin, fake_chat):
     assert "Message for the first person." not in fake_chat["prompts"][1]
 
 
-# --- cooldowns ---------------------------------------------------------------
+# --- cooldowns (idle messages) -------------------------------------------------
 
 def test_a_second_idle_message_too_soon_is_refused(
     logged_in_client, repkin, fake_chat, clock
 ):
     assert ask(logged_in_client, "idle").status_code == 200
-    clock["now"] += 20
+    elapsed = IDLE_COOLDOWN / 2
+    clock["now"] += elapsed
     response = ask(logged_in_client, "idle")
+    expected_wait = math.ceil(IDLE_COOLDOWN - elapsed)
     assert response.status_code == 429
-    assert response.json()["retry_after"] == 40
-    assert response["Retry-After"] == "40"
+    assert response.json()["retry_after"] == expected_wait
+    assert response["Retry-After"] == str(expected_wait)
     assert len(fake_chat["prompts"]) == 1          # the model was not asked again
 
 
@@ -268,28 +360,21 @@ def test_idle_messages_are_allowed_again_after_the_cooldown(
     logged_in_client, repkin, fake_chat, clock
 ):
     ask(logged_in_client, "idle")
-    clock["now"] += 60
+    clock["now"] += IDLE_COOLDOWN
     assert ask(logged_in_client, "idle").status_code == 200
     assert len(fake_chat["prompts"]) == 2
 
 
 def test_retry_after_rounds_up_to_whole_seconds(logged_in_client, repkin, fake_chat, clock):
     ask(logged_in_client, "idle")
-    clock["now"] += 59.2
+    clock["now"] += IDLE_COOLDOWN - 0.8
     assert ask(logged_in_client, "idle").json()["retry_after"] == 1
 
 
-def test_greetings_have_a_short_cooldown_too(logged_in_client, repkin, fake_chat, clock):
-    ask(logged_in_client, "greeting")
-    clock["now"] += 5
-    assert ask(logged_in_client, "greeting").status_code == 429
-    clock["now"] += 5
-    assert ask(logged_in_client, "greeting").status_code == 200
-
-
 def test_cooldowns_are_separate_for_each_kind(logged_in_client, repkin, fake_chat, clock):
+    owe_greeting(logged_in_client)
     assert ask(logged_in_client, "idle").status_code == 200
-    assert ask(logged_in_client, "greeting").status_code == 200
+    assert ask(logged_in_client, "greeting").json()["message"] is not None
     assert ask(logged_in_client, "workout").status_code == 200
 
 
@@ -304,10 +389,10 @@ def test_a_refused_request_does_not_change_what_RepKin_remembers(
 ):
     fake_chat["reply"] = "First message."
     ask(logged_in_client, "idle")
-    clock["now"] += 10
+    clock["now"] += IDLE_COOLDOWN / 2
     fake_chat["reply"] = "Should never be used."
     ask(logged_in_client, "idle")                   # refused
-    clock["now"] += 100
+    clock["now"] += IDLE_COOLDOWN
     fake_chat["reply"] = "Third message."
     ask(logged_in_client, "idle")
     assert "First message." in fake_chat["prompts"][1]
@@ -319,7 +404,7 @@ def test_fallback_messages_also_start_the_cooldown(
 ):
     fake_chat["reply"] = OllamaUnavailable("down")
     assert ask(logged_in_client, "idle").status_code == 200
-    clock["now"] += 5
+    clock["now"] += IDLE_COOLDOWN / 2
     assert ask(logged_in_client, "idle").status_code == 429
     assert len(fake_chat["prompts"]) == 1           # a stopped Ollama isn't pestered
 
