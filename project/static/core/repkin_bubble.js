@@ -1,8 +1,8 @@
 /* RepKin's speech bubble.
  *
  * What it does:
- *   - asks the server for ONE greeting when the home page loads (the server
- *     only hands one out per login),
+ *   - asks the server for ONE greeting once the home page is clear of dialogs
+ *     (the server only hands one out per login),
  *   - shows a compliment after an exercise is logged (it listens for the
  *     "exercise:logged" event),
  *   - shows an idle message now and then if nothing has happened for a while.
@@ -127,6 +127,28 @@
         }
     }
 
+    // ---- The greeting ------------------------------------------------------
+    // The server uses up a login's one greeting the moment it is ASKED for. So
+    // we only ask once nothing is in the way: no dialog or menu open, and the
+    // tab visible. If we asked while the welcome or setup dialog was open, the
+    // answer would sit in memory behind it, and saving the setup form reloads
+    // the page, which throws the waiting message away. The greeting would be
+    // used up and never seen. (Asking later costs nothing: the page that finally
+    // asks is the one that shows it.)
+    let greetingTimer = null;
+
+    function askForGreetingWhenFree() {
+        clearTimeout(greetingTimer);
+        if (loggedOut) {
+            return;
+        }
+        if (isModalOpen() || document.visibilityState !== "visible") {
+            greetingTimer = setTimeout(askForGreetingWhenFree, BLOCKED_CHECK_MS);
+            return;
+        }
+        ask("greeting");
+    }
+
     // ---- Idle messages -----------------------------------------------------
 
     function scheduleIdle(delay) {
@@ -201,6 +223,6 @@
 
     window.RepkinBubble = { ask: ask, show: show, dismiss: dismiss };
 
-    ask("greeting");
+    askForGreetingWhenFree();
     noteActivity();
 })();
