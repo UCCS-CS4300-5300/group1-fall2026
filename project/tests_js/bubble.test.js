@@ -1,7 +1,18 @@
 // Tests for RepKin's speech bubble (static/core/repkin_bubble.js).
 //
-// Run them from this folder:   pip install npm   then   what?   ???  npm test
-//
+// Run them from this folder:   LINK:https://nodejs.org/en/download
+//# Download and install fnm:
+//winget install Schniz.fnm
+//# In lieu of restarting the shell
+//fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression
+//# Download and install Node.js:
+//fnm install --use 26
+//# Verify the Node.js version:
+//node -v # Should print "v26.13.1".
+//# Verify npm version:
+//npm -v # Should print "11.20.0".
+// ====================Use commands from the above link, then run:       npm install    AND      npm test
+// THIS SHOULD RUN ALL THE TESTS!!! 
 // They run the real script in a simulated page (jsdom) with a fake fetch() and
 // a fake clock, so timing rules like "60 seconds idle" are tested instantly.
 const test = require("node:test");
