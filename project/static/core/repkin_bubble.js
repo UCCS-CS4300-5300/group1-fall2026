@@ -38,13 +38,13 @@
     }
 
     // ---- Timings, in milliseconds. Change these to tune how chatty RepKin is.
-    // Keep IDLE_REPEAT_MS at or above the server's idle cooldown
-    // (COOLDOWN_SECONDS["idle"] in views_message.py), or the server will refuse.
-    const IDLE_DELAY_MS = 15 * 1000;    // quiet time before the first idle message
-    const IDLE_REPEAT_MS = 20 * 1000;   // gap between idle messages while still quiet
-    const IDLE_RECHECK_MS = 10 * 1000;  // if it's a bad moment, look again after this
-    const AUTO_HIDE_MS = 12 * 1000;     // how long a message stays up
-    const BLOCKED_CHECK_MS = 500;       // how often we check whether a modal closed
+    // Keep IDLE_REPEAT_MS at or above the server's idle cooldown (COOLDOWN_SECONDS["idle"] in views_message.py), or the server will refuse.
+    // DEMO VALUES FOR THE FOLLOWING 2:                                                             # REVERT TO DEFAULTS WHEN TESTS FAIL
+    const IDLE_DELAY_MS = 60 * 1000;  //20 * 1000  // quiet time before the first idle message      # DEFAULT: 60 * 1000
+    const IDLE_REPEAT_MS = 90 * 1000; //20 * 1000  // gap between idle messages while still quiet   # DEFAULT: 90 * 1000
+    const IDLE_RECHECK_MS = 10 * 1000;  // if it's a bad moment, look again after this              # DEFAULT: 10 * 1000
+    const AUTO_HIDE_MS = 12 * 1000;     // how long a message stays up                              # DEFAULT: 12 * 1000
+    const BLOCKED_CHECK_MS = 500;       // how often we check whether a modal closed                # DEFAULT: 500
 
     let requestsInFlight = 0;
     let queuedMessage = null;

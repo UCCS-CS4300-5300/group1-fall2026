@@ -13,6 +13,8 @@ from .repkin_voice import KINDS, generate_message
 # something the user just did, so it has no cooldown. A greeting has none
 # either: it is limited by the one-greeting-per-login rule below instead.
 COOLDOWN_SECONDS = {"greeting": 0, "workout": 0, "idle": 15}
+# HERE IS WHERE THE INITIAL DELIVERY TIMINGS FOR MESSAGES ARE SET FOR THE SERVER!
+# Additional tweeks for the 'idle' messages can be made in the repkin_bubble.js file.
 
 # The most exercise ids one workout request may name.
 MAX_LOG_IDS = 20
