@@ -234,7 +234,7 @@ def test_menu_is_on_both_rooms(logged_in_client, url_name):
     html = logged_in_client.get(reverse(url_name)).content.decode()
     assert 'id="mainMenu"' in html
     assert 'id="mainMenuButton"' in html
-    #assert "js/main_menu.js" in html
+    assert "js/main_menu.js" in html
     assert html.count('id="menuArt"') == 1
     
 @pytest.mark.django_db

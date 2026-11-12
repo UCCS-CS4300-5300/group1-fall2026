@@ -1,12 +1,13 @@
 /* RepKin's speech bubble.
    It is positioned inside .stage, just above the RepKin. To move it up or
    down, change --bubble-bottom (the gap between the bubble and the bottom of
-   the stage). */
+   the stage). Each page can set --bubble-left (see _repkin_bubble.html) so
+   the bubble's tail points at the RepKin. */
 .repkin-bubble {
     --bubble-bottom: 25%;
 
     position: absolute;
-    left: 50%;
+    left: var(--bubble-left, 50%);
     bottom: var(--bubble-bottom);
     transform: translateX(-50%);
     z-index: 50;

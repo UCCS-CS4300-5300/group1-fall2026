@@ -1,6 +1,6 @@
 // Tests for RepKin's speech bubble (static/core/repkin_bubble.js).
 //
-// Run them from this folder:   LINK:https://nodejs.org/en/download
+// Run them from this folder:   npm install   then   npm test
 //# Download and install fnm:
 //winget install Schniz.fnm
 //# In lieu of restarting the shell
@@ -11,8 +11,7 @@
 //node -v # Should print "v26.13.1".
 //# Verify npm version:
 //npm -v # Should print "11.20.0".
-// ====================Use commands from the above link, then run:       npm install    AND      npm test
-// THIS SHOULD RUN ALL THE TESTS!!! 
+//
 // They run the real script in a simulated page (jsdom) with a fake fetch() and
 // a fake clock, so timing rules like "60 seconds idle" are tested instantly.
 const test = require("node:test");
@@ -26,18 +25,23 @@ const SCRIPT_PATH =
     process.env.BUBBLE_SCRIPT || path.join(__dirname, "..", "static", "core", "repkin_bubble.js");
 const SCRIPT = fs.readFileSync(SCRIPT_PATH, "utf8");
 
-// The parts of the home page the script cares about.
-const PAGE = `<!doctype html><html><body>
+// The parts of the page the script cares about. `messages` is the page's
+// data-messages setting (which kinds it may ask for). Leave it out to get the
+// default, which allows everything, like the workout room.
+function pageHtml(messages) {
+    const attribute = messages === undefined ? "" : ` data-messages="${messages}"`;
+    return `<!doctype html><html><body>
   <div id="mainMenu" class="main_menu hidden"></div>
   <dialog id="welcome-modal"></dialog>
   <dialog id="setup-modal"></dialog>
   <dialog id="exercise-modal"></dialog>
   <div id="repkin-bubble" class="repkin-bubble" hidden
-       data-message-url="/repkin/message/" data-csrf-token="test-token-0123456789-abcdef">
+       data-message-url="/repkin/message/" data-csrf-token="test-token-0123456789-abcdef"${attribute}>
     <p class="repkin-bubble__text"></p>
     <button type="button" class="repkin-bubble__close">&times;</button>
   </div>
 </body></html>`;
+}
 
 const json = (data, extra = {}) => ({
     ok: true, status: 200, redirected: false,
@@ -45,10 +49,10 @@ const json = (data, extra = {}) => ({
 });
 
 // Open a page. `responder(call)` plays the server. `opts` sets the starting state
-// (dialogs open, menu open, tab hidden) BEFORE the script runs, like a real page
-// whose inline scripts have already opened the welcome modal.
+// (dialogs open, menu open, tab hidden, allowed messages) BEFORE the script runs,
+// like a real page whose inline scripts have already opened the welcome modal.
 function openPage(responder, opts = {}) {
-    const dom = new JSDOM(PAGE, { runScripts: "outside-only", pretendToBeVisual: true });
+    const dom = new JSDOM(pageHtml(opts.messages), { runScripts: "outside-only", pretendToBeVisual: true });
     const w = dom.window;
     const doc = w.document;
     (opts.dialogsOpen || []).forEach((id) => doc.getElementById(id).setAttribute("open", ""));
@@ -360,6 +364,83 @@ test("an idle message does not pile on top of one that is still showing", async 
     p.doc.dispatchEvent(new p.w.Event("pointerdown"));
     await p.tick(1000);
     assert.equal(p.kinds("idle").length, 1);
+});
+
+// ------------------------------------------------------------ which messages a page allows
+
+test("a page that allows only idle messages never asks for the greeting", async () => {
+    const server = fakeServer();
+    const locker = openPage(server.respond, { messages: "idle" });
+    await locker.tick(5000);
+    assert.equal(locker.kinds("greeting").length, 0);
+    assert.equal(locker.bubble.hidden, true);
+    assert.equal(server.greetingOwed, true, "the greeting must stay owed for the workout room");
+});
+
+test("an idle-only page still sends idle messages after 60 seconds of quiet", async () => {
+    const p = openPage(async (c) => json({ message: c.kind === "idle" ? "Locker room chat!" : null }), { messages: "idle" });
+    await p.tick(59000);
+    assert.equal(p.kinds("idle").length, 0);
+    await p.tick(1500);
+    assert.equal(p.kinds("idle").length, 1);
+    assert.equal(p.text(), "Locker room chat!");
+    await p.tick(90000);                    // and keeps going while idle
+    assert.equal(p.kinds("idle").length, 2);
+});
+
+test("an idle-only page ignores a logged exercise", async () => {
+    const p = openPage(says("x"), { messages: "idle" });
+    await p.tick(0);
+    p.announceExercise(9);
+    await p.tick(1000);
+    assert.equal(p.kinds("workout").length, 0);
+});
+
+test("an idle-only page cannot be made to ask for other kinds by other code", async () => {
+    const p = openPage(says("x"), { messages: "idle" });
+    await p.tick(0);
+    await p.w.RepkinBubble.ask("greeting");
+    await p.w.RepkinBubble.ask("workout", [1]);
+    assert.equal(p.calls.length, 0);
+});
+
+test("a page with no data-messages setting allows all three kinds", async () => {
+    const p = openPage(async (c) => json({ message: c.kind + " message", kind: c.kind }));
+    await p.tick(0);
+    assert.equal(p.kinds("greeting").length, 1);
+    p.announceExercise(3);
+    await p.tick(0);
+    assert.equal(p.kinds("workout").length, 1);
+    await p.tick(61000);
+    assert.equal(p.kinds("idle").length, 1);
+});
+
+test("spaces in the data-messages list are fine", async () => {
+    const p = openPage(says("x"), { messages: "greeting , idle" });
+    await p.tick(0);
+    assert.equal(p.kinds("greeting").length, 1);
+    p.announceExercise(3);
+    await p.tick(0);
+    assert.equal(p.kinds("workout").length, 0);
+});
+
+test("a page that does not allow idle messages never sends them", async () => {
+    const p = openPage(says("x"), { messages: "greeting,workout" });
+    await p.tick(0);
+    await p.tick(400000);
+    assert.equal(p.kinds("idle").length, 0);
+});
+
+test("visiting the locker room first does not cost the user their greeting in the workout room", async () => {
+    const server = fakeServer();
+
+    const locker = openPage(server.respond, { messages: "idle" });       // they log in, then open the locker room
+    await locker.tick(10000);
+    assert.equal(locker.bubble.hidden, true);
+
+    const workoutRoom = openPage(server.respond);                        // then walk back to the workout room
+    await workoutRoom.tick(1000);
+    assert.equal(workoutRoom.text(), "Hi, welcome!");
 });
 
 // ------------------------------------------------------------ when things go wrong

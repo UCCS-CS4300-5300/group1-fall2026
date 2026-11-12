@@ -12,7 +12,7 @@ from .repkin_voice import KINDS, generate_message
 # a bug) can't hammer the model. A workout comment is a direct reaction to
 # something the user just did, so it has no cooldown. A greeting has none
 # either: it is limited by the one-greeting-per-login rule below instead.
-COOLDOWN_SECONDS = {"greeting": 0, "workout": 0, "idle": 60}
+COOLDOWN_SECONDS = {"greeting": 0, "workout": 0, "idle": 15}
 
 # The most exercise ids one workout request may name.
 MAX_LOG_IDS = 20

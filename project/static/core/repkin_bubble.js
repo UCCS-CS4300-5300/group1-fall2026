@@ -1,6 +1,7 @@
 /* RepKin's speech bubble.
  *
- * What it does:
+ * What it does (each page chooses which of these it wants, using the
+ * data-messages attribute on the bubble; see _repkin_bubble.html):
  *   - asks the server for ONE greeting once the home page is clear of dialogs
  *     (the server only hands one out per login),
  *   - shows a compliment after an exercise is logged (it listens for the
@@ -25,11 +26,22 @@
     const csrfToken = root.dataset.csrfToken;
     const mainMenu = document.getElementById("mainMenu");
 
+    // Which messages this page may ask for. The workout room allows all three;
+    // the locker room only allows "idle", so it never uses up the login's
+    // greeting or reacts to workouts.
+    const allowedKinds = (root.dataset.messages || "greeting,workout,idle")
+        .split(",")
+        .map(function (name) { return name.trim(); });
+
+    function allows(kind) {
+        return allowedKinds.includes(kind);
+    }
+
     // ---- Timings, in milliseconds. Change these to tune how chatty RepKin is.
     // Keep IDLE_REPEAT_MS at or above the server's idle cooldown
     // (COOLDOWN_SECONDS["idle"] in views_message.py), or the server will refuse.
-    const IDLE_DELAY_MS = 60 * 1000;    // quiet time before the first idle message
-    const IDLE_REPEAT_MS = 90 * 1000;   // gap between idle messages while still quiet
+    const IDLE_DELAY_MS = 15 * 1000;    // quiet time before the first idle message
+    const IDLE_REPEAT_MS = 20 * 1000;   // gap between idle messages while still quiet
     const IDLE_RECHECK_MS = 10 * 1000;  // if it's a bad moment, look again after this
     const AUTO_HIDE_MS = 12 * 1000;     // how long a message stays up
     const BLOCKED_CHECK_MS = 500;       // how often we check whether a modal closed
@@ -89,7 +101,7 @@
     // ---- Asking the server -------------------------------------------------
 
     async function ask(kind, logIds) {
-        if (loggedOut) {
+        if (loggedOut || !allows(kind)) {
             return;
         }
         const body = new URLSearchParams();
@@ -157,7 +169,7 @@
     }
 
     function onIdle() {
-        if (loggedOut) {
+        if (loggedOut || !allows("idle")) {
             return;
         }
         const goodMoment =
@@ -176,7 +188,7 @@
 
     // Any tap, click, or key press means the user is not idle: start counting again.
     function noteActivity() {
-        if (!loggedOut) {
+        if (!loggedOut && allows("idle")) {
             scheduleIdle(IDLE_DELAY_MS);
         }
     }
@@ -216,13 +228,17 @@
     // The exercise form announces new logs with this event:
     //   document.dispatchEvent(new CustomEvent("exercise:logged",
     //       { detail: { logIds: [12] } }));
-    document.addEventListener("exercise:logged", function (event) {
-        const logIds = (event.detail && event.detail.logIds) || [];
-        ask("workout", logIds);
-    });
+    if (allows("workout")) {
+        document.addEventListener("exercise:logged", function (event) {
+            const logIds = (event.detail && event.detail.logIds) || [];
+            ask("workout", logIds);
+        });
+    }
 
     window.RepkinBubble = { ask: ask, show: show, dismiss: dismiss };
 
-    askForGreetingWhenFree();
+    if (allows("greeting")) {
+        askForGreetingWhenFree();
+    }
     noteActivity();
 })();
