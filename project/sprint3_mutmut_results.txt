@@ -1,0 +1,243 @@
+    core.forms_exercise.xǁExerciseInputFormǁclean__mutmut_24: survived
+    core.forms_exercise.xǁExerciseInputFormǁclean__mutmut_31: survived
+    core.forms_exercise.xǁExerciseInputFormǁclean__mutmut_32: survived
+    core.forms_exercise.xǁExerciseInputFormǁclean__mutmut_38: survived
+    core.forms_exercise.xǁExerciseInputFormǁclean__mutmut_39: survived
+    core.ollama_client.x_chat__mutmut_14: survived
+    core.ollama_client.x_chat__mutmut_15: survived
+    core.exercise_logging.x_log_exercise__mutmut_14: survived
+    core.exercise_logging.x_log_exercise__mutmut_20: survived
+    core.exercise_logging.x_log_exercise__mutmut_29: survived
+    core.exercise_logging.x_log_exercise__mutmut_30: survived
+    core.exercise_logging.x_log_exercise__mutmut_31: survived
+    core.exercise_logging.x_log_exercise__mutmut_41: survived
+    core.exercise_logging.x_log_exercise__mutmut_42: survived
+    core.exercise_logging.x_log_exercise__mutmut_43: survived
+    core.exercise_logging.x_log_exercise__mutmut_44: survived
+    core.exercise_logging.x_log_exercise__mutmut_45: survived
+    core.exercise_logging.x_log_exercise__mutmut_46: survived
+    core.exercise_logging.x_log_exercise__mutmut_47: survived
+    core.exercise_logging.x_log_exercise__mutmut_48: survived
+    core.exercise_logging.x_log_exercise__mutmut_49: survived
+    core.exercise_logging.x_log_exercise__mutmut_50: survived
+    core.exercise_logging.x_log_exercise__mutmut_51: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_3: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_5: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_7: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_8: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_9: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_10: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_11: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_12: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_13: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_14: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_15: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_16: survived
+    core.exercise_logging.x_send_stats_to_repkin__mutmut_17: survived
+    core.repkin_looks.x_parse_arm_level__mutmut_4: survived
+    core.repkin_looks.x_parse_arm_level__mutmut_5: survived
+    core.repkin_voice.x_describe_when__mutmut_3: timeout
+    core.repkin_voice.x_describe_when__mutmut_5: timeout
+    core.repkin_voice.x_describe_when__mutmut_8: timeout
+    core.repkin_voice.x_describe_when__mutmut_9: timeout
+    core.repkin_voice.x_describe_when__mutmut_10: timeout
+    core.repkin_voice.x_describe_when__mutmut_11: timeout
+    core.repkin_voice.x_describe_exercise__mutmut_1: timeout
+    core.repkin_voice.x_describe_exercise__mutmut_33: timeout
+    core.repkin_voice.x_gather_facts__mutmut_2: timeout
+    core.repkin_voice.x_gather_facts__mutmut_14: timeout
+    core.repkin_voice.x_gather_facts__mutmut_15: timeout
+    core.repkin_voice.x_gather_facts__mutmut_16: timeout
+    core.repkin_voice.x_gather_facts__mutmut_23: timeout
+    core.repkin_voice.x_gather_facts__mutmut_24: timeout
+    core.repkin_voice.x_gather_facts__mutmut_25: timeout
+    core.repkin_voice.x_gather_facts__mutmut_26: timeout
+    core.repkin_voice.x_gather_facts__mutmut_27: timeout
+    core.repkin_voice.x_gather_facts__mutmut_28: timeout
+    core.repkin_voice.x_gather_facts__mutmut_29: timeout
+    core.repkin_voice.x_gather_facts__mutmut_30: timeout
+    core.repkin_voice.x_gather_facts__mutmut_32: timeout
+    core.repkin_voice.x_gather_facts__mutmut_33: timeout
+    core.repkin_voice.x_gather_facts__mutmut_34: timeout
+    core.repkin_voice.x_gather_facts__mutmut_35: timeout
+    core.repkin_voice.x_gather_facts__mutmut_36: timeout
+    core.repkin_voice.x_gather_facts__mutmut_37: timeout
+    core.repkin_voice.x_gather_facts__mutmut_39: timeout
+    core.repkin_voice.x_gather_facts__mutmut_41: timeout
+    core.repkin_voice.x_gather_facts__mutmut_42: timeout
+    core.repkin_voice.x_app_exercise_names__mutmut_2: timeout
+    core.repkin_voice.x_describe_topic__mutmut_3: timeout
+    core.repkin_voice.x_describe_topic__mutmut_7: timeout
+    core.repkin_voice.x_describe_topic__mutmut_8: timeout
+    core.repkin_voice.x_describe_topic__mutmut_13: timeout
+    core.repkin_voice.x_describe_topic__mutmut_14: timeout
+    core.repkin_voice.x_describe_topic__mutmut_27: timeout
+    core.repkin_voice.x_describe_topic__mutmut_28: timeout
+    core.repkin_voice.x_situation_for__mutmut_4: timeout
+    core.repkin_voice.x_situation_for__mutmut_5: timeout
+    core.repkin_voice.x_situation_for__mutmut_7: timeout
+    core.repkin_voice.x_situation_for__mutmut_8: timeout
+    core.repkin_voice.x_situation_for__mutmut_9: timeout
+    core.repkin_voice.x_situation_for__mutmut_10: timeout
+    core.repkin_voice.x_situation_for__mutmut_11: timeout
+    core.repkin_voice.x_situation_for__mutmut_15: timeout
+    core.repkin_voice.x_situation_for__mutmut_16: timeout
+    core.repkin_voice.x_situation_for__mutmut_17: timeout
+    core.repkin_voice.x_situation_for__mutmut_18: timeout
+    core.repkin_voice.x_situation_for__mutmut_19: timeout
+    core.repkin_voice.x_situation_for__mutmut_20: timeout
+    core.repkin_voice.x_situation_for__mutmut_21: timeout
+    core.repkin_voice.x_situation_for__mutmut_22: timeout
+    core.repkin_voice.x_situation_for__mutmut_24: timeout
+    core.repkin_voice.x_situation_for__mutmut_25: timeout
+    core.repkin_voice.x_situation_for__mutmut_26: timeout
+    core.repkin_voice.x_situation_for__mutmut_27: timeout
+    core.repkin_voice.x_situation_for__mutmut_28: timeout
+    core.repkin_voice.x_situation_for__mutmut_29: timeout
+    core.repkin_voice.x_build_messages__mutmut_1: timeout
+    core.repkin_voice.x_build_messages__mutmut_3: timeout
+    core.repkin_voice.x_build_messages__mutmut_4: timeout
+    core.repkin_voice.x_build_messages__mutmut_5: timeout
+    core.repkin_voice.x_build_messages__mutmut_6: timeout
+    core.repkin_voice.x_build_messages__mutmut_13: timeout
+    core.repkin_voice.x_build_messages__mutmut_14: timeout
+    core.repkin_voice.x_build_messages__mutmut_15: timeout
+    core.repkin_voice.x_build_messages__mutmut_16: timeout
+    core.repkin_voice.x_build_messages__mutmut_22: timeout
+    core.repkin_voice.x_build_messages__mutmut_23: timeout
+    core.repkin_voice.x_build_messages__mutmut_24: timeout
+    core.repkin_voice.x_build_messages__mutmut_25: timeout
+    core.repkin_voice.x_build_messages__mutmut_26: timeout
+    core.repkin_voice.x_build_messages__mutmut_27: timeout
+    core.repkin_voice.x_build_messages__mutmut_28: timeout
+    core.repkin_voice.x_build_messages__mutmut_29: timeout
+    core.repkin_voice.x_build_messages__mutmut_30: timeout
+    core.repkin_voice.x_build_messages__mutmut_31: timeout
+    core.repkin_voice.x_build_messages__mutmut_32: timeout
+    core.repkin_voice.x_build_messages__mutmut_33: timeout
+    core.repkin_voice.x_build_messages__mutmut_34: timeout
+    core.repkin_voice.x_build_messages__mutmut_35: timeout
+    core.repkin_voice.x_build_messages__mutmut_36: timeout
+    core.repkin_voice.x_build_messages__mutmut_37: timeout
+    core.repkin_voice.x_build_messages__mutmut_38: timeout
+    core.repkin_voice.x_build_messages__mutmut_39: timeout
+    core.repkin_voice.x_build_messages__mutmut_40: timeout
+    core.repkin_voice.x_build_messages__mutmut_41: timeout
+    core.repkin_voice.x_build_messages__mutmut_43: timeout
+    core.repkin_voice.x_build_messages__mutmut_44: timeout
+    core.repkin_voice.x_build_messages__mutmut_46: timeout
+    core.repkin_voice.x_build_messages__mutmut_49: timeout
+    core.repkin_voice.x_build_messages__mutmut_50: timeout
+    core.repkin_voice.x_build_messages__mutmut_51: timeout
+    core.repkin_voice.x_build_messages__mutmut_52: timeout
+    core.repkin_voice.x_build_messages__mutmut_53: timeout
+    core.repkin_voice.x_build_messages__mutmut_54: timeout
+    core.repkin_voice.x_build_messages__mutmut_55: timeout
+    core.repkin_voice.x_build_messages__mutmut_56: timeout
+    core.repkin_voice.x_build_messages__mutmut_58: timeout
+    core.repkin_voice.x_build_messages__mutmut_61: timeout
+    core.repkin_voice.x_build_messages__mutmut_65: timeout
+    core.repkin_voice.x_build_messages__mutmut_68: timeout
+    core.repkin_voice.x_build_messages__mutmut_69: timeout
+    core.repkin_voice.x_build_messages__mutmut_70: timeout
+    core.repkin_voice.x_build_messages__mutmut_71: timeout
+    core.repkin_voice.x_build_messages__mutmut_75: timeout
+    core.repkin_voice.x_clean_reply__mutmut_19: timeout
+    core.repkin_voice.x_clean_reply__mutmut_20: timeout
+    core.repkin_voice.x_clean_reply__mutmut_23: timeout
+    core.repkin_voice.x_clean_reply__mutmut_24: timeout
+    core.repkin_voice.x_clean_reply__mutmut_34: timeout
+    core.repkin_voice.x_clean_reply__mutmut_35: timeout
+    core.repkin_voice.x_clean_reply__mutmut_36: timeout
+    core.repkin_voice.x_clean_reply__mutmut_37: timeout
+    core.repkin_voice.x_clean_reply__mutmut_38: timeout
+    core.repkin_voice.x_clean_reply__mutmut_39: timeout
+    core.repkin_voice.x_clean_reply__mutmut_40: timeout
+    core.repkin_voice.x_clean_reply__mutmut_41: timeout
+    core.repkin_voice.x_clean_reply__mutmut_42: timeout
+    core.repkin_voice.x_clean_reply__mutmut_43: timeout
+    core.repkin_voice.x_clean_reply__mutmut_44: timeout
+    core.repkin_voice.x_clean_reply__mutmut_45: timeout
+    core.repkin_voice.x_clean_reply__mutmut_46: timeout
+    core.repkin_voice.x_clean_reply__mutmut_47: timeout
+    core.repkin_voice.x_clean_reply__mutmut_48: timeout
+    core.repkin_voice.x_clean_reply__mutmut_49: timeout
+    core.repkin_voice.x_clean_reply__mutmut_50: timeout
+    core.repkin_voice.x_clean_reply__mutmut_51: timeout
+    core.repkin_voice.x_clean_reply__mutmut_52: timeout
+    core.repkin_voice.x_clean_reply__mutmut_53: timeout
+    core.repkin_voice.x_clean_reply__mutmut_54: timeout
+    core.repkin_voice.x_clean_reply__mutmut_55: timeout
+    core.repkin_voice.x_clean_reply__mutmut_56: timeout
+    core.repkin_voice.x_clean_reply__mutmut_57: timeout
+    core.repkin_voice.x_clean_reply__mutmut_58: timeout
+    core.repkin_voice.x_clean_reply__mutmut_59: timeout
+    core.repkin_voice.x_generate_message__mutmut_1: timeout
+    core.repkin_voice.x_generate_message__mutmut_3: timeout
+    core.repkin_voice.x_generate_message__mutmut_9: timeout
+    core.repkin_voice.x_generate_message__mutmut_10: timeout
+    core.repkin_voice.x_generate_message__mutmut_11: timeout
+    core.repkin_voice.x_generate_message__mutmut_12: timeout
+    core.repkin_voice.x_generate_message__mutmut_15: timeout
+    core.repkin_voice.x_generate_message__mutmut_34: timeout
+    core.repkin_voice.x_generate_message__mutmut_36: timeout
+    core.repkin_voice.x_generate_message__mutmut_37: timeout
+    core.repkin_voice.x_generate_message__mutmut_40: timeout
+    core.repkin_voice.x_generate_message__mutmut_48: timeout
+    core.repkin_voice.x_generate_message__mutmut_49: timeout
+    core.repkin_voice.x_generate_message__mutmut_50: timeout
+    core.repkin_voice.x_generate_message__mutmut_51: timeout
+    core.repkin_voice.x_generate_message__mutmut_53: timeout
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_1: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_2: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_3: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_4: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_5: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_6: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_7: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_8: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_9: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_10: no tests
+    core.models_repkin.xǁRepkinǁupdate_stats__mutmut_11: no tests
+    core.firebase_auth.x_get_firebase_app__mutmut_1: no tests
+    core.firebase_auth.x_get_firebase_app__mutmut_2: no tests
+    core.firebase_auth.x_get_firebase_app__mutmut_3: no tests
+    core.firebase_auth.x_get_firebase_app__mutmut_4: no tests
+    core.firebase_auth.x_get_firebase_app__mutmut_5: no tests
+    core.firebase_auth.x_get_firestore_client__mutmut_1: no tests
+    core.firebase_auth.x_verify_firebase_id_token__mutmut_1: no tests
+    core.firebase_auth.x_verify_firebase_id_token__mutmut_2: no tests
+    core.firebase_auth.x_verify_firebase_id_token__mutmut_3: no tests
+    core.firebase_auth.x_verify_firebase_id_token__mutmut_4: no tests
+    core.tests.x_find_css_text__mutmut_1: no tests
+    core.tests.x_find_css_text__mutmut_2: no tests
+    core.tests.x_find_css_text__mutmut_3: no tests
+    core.tests.x_find_css_text__mutmut_4: no tests
+    core.tests.x_find_css_text__mutmut_5: no tests
+    core.tests.x_find_css_text__mutmut_6: no tests
+    core.tests.x_find_css_text__mutmut_7: no tests
+    core.tests.x_find_css_text__mutmut_8: no tests
+    core.tests.x_find_css_text__mutmut_9: no tests
+    core.tests.x_find_css_text__mutmut_10: no tests
+    core.tests.x_find_css_text__mutmut_11: no tests
+    core.tests.x_find_css_text__mutmut_12: no tests
+    core.views_message.x_parse_log_ids__mutmut_2: timeout
+    core.views_message.x_parse_log_ids__mutmut_3: timeout
+    core.views_message.x_parse_log_ids__mutmut_4: timeout
+    core.views_message.x_parse_log_ids__mutmut_9: timeout
+    core.views_message.x_parse_log_ids__mutmut_10: timeout
+    core.views_message.x_parse_log_ids__mutmut_11: timeout
+    core.views_message.x_parse_log_ids__mutmut_12: timeout
+    core.views_exercise.x_build_exercise_data__mutmut_17: survived
+    core.views_exercise.x_build_exercise_data__mutmut_18: survived
+    core.views_exercise.x_build_exercise_data__mutmut_19: survived
+    core.views_exercise.x_build_exercise_data__mutmut_22: survived
+    core.views_exercise.x_build_exercise_data__mutmut_23: survived
+    core.views_exercise.x_build_exercise_data__mutmut_24: survived
+    core.exercises.x_effort_points__mutmut_5: survived
+    core.views.x_render_home__mutmut_1: timeout
+    core.views.x_render_home__mutmut_2: timeout
+    core.views.x_render_home__mutmut_4: timeout
+    core.views.x_render_home__mutmut_5: timeout
+    core.views.x_render_home__mutmut_9: timeout
+    core.views.x_render_home__mutmut_10: timeout

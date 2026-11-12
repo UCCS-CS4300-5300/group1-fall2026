@@ -8,3 +8,4 @@ __pycache__/
 secrets/
 *firebase-adminsdk*.json
 node_modules/
+mutants/
