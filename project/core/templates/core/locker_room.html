@@ -7,8 +7,9 @@
     <title>Locker Room</title>
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
-    <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
+    <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
+    <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
 </head>
 
 <body>
@@ -16,8 +17,12 @@
         <img src="{%static 'img/stat_bars.png'%}" alt="Status bar" class="stats-bar">
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
         <img src="{% static arm_gif %}" alt="Repkin" class="user-base-gif" id="repkin-sprite">
+        {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
+        <!-- THIS WORKS ->>>{% include "core/_repkin_bubble.html" %} -->
+        <!-- Also works? But better? {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %} -->
+        
 
-        <!-- Home page return button -->
+        <!-- Home page return button, maybe response buble above? -->
         <a href="{% url 'core:home' %}" class="home-page-btn" id="home-page-btn"
             aria-label="Back to workout room"></a>
 

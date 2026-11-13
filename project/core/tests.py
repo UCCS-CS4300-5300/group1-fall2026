@@ -147,10 +147,9 @@ def test_main_menu_button_interaction(logged_in_client):
 
 
 @pytest.mark.django_db
-def test_home_contains_practice_data_form(logged_in_client):
-    response = logged_in_client.get(reverse("core:home"))
-    assert b'id="practice-data-form"' in response.content
-    assert f'action="{reverse("core:practice_data")}"'.encode() in response.content
+def test_home_does_not_show_the_practice_data_panel(logged_in_client):
+    html = logged_in_client.get(reverse("core:home")).content.decode().lower()
+    assert "practice" not in html           # no panel, form, script, or leftover handler
 
 @pytest.fixture
 def home_html(logged_in_client):
@@ -263,13 +262,7 @@ def test_locker_room_requires_login(client):
     assert response.status_code == 302
 
 @pytest.mark.django_db
-def test_dumbbell_button_and_hidden_practice_panel(home_html):
+def test_the_dumbbell_opens_only_the_log_exercise_modal(home_html):
     assert home_html.count('id="log-exercise-btn"') == 1
-    tag = home_html.split('id="practice-panel"', 1)[1].split(">", 1)[0]
-    assert "hidden" in tag
-    
-@pytest.mark.django_db
-def test_dumbbell_button_and_panel_start_hidden(home_html):
-    assert home_html.count('id="log-exercise-btn"') == 1
-    tag = home_html.split('id="practice-panel"', 1)[1].split(">", 1)[0]
-    assert "hidden" in tag
+    assert home_html.count('id="exercise-modal"') == 1
+    assert "practice" not in home_html.lower()

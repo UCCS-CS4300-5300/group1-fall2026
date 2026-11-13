@@ -33,8 +33,8 @@ RECENT_EXERCISE_LIMIT = 5
 # (a request it usually follows) and we ENFORCE MAX_MESSAGE_CHARS when cleaning
 # its reply (a hard limit it can't ignore). Keep the character limit a little
 # above what the word limit normally produces.
-MAX_WORDS = 15
-MAX_MESSAGE_CHARS = 150
+MAX_WORDS = 12
+MAX_MESSAGE_CHARS = 100
 
 # Separate safety limit on the previous message that gets sent back into the
 # prompt. It is not about reply length. Keep it >= MAX_MESSAGE_CHARS.
@@ -196,10 +196,14 @@ def tidy_last_message(text):
 
 def situation_for(kind, facts, topic):
     if kind == "greeting":
+        if facts.recent_exercises:
+            return (
+                "The user just opened the app. Greet them warmly and welcome them "
+                "back. You may mention their most recent exercise."
+            )
         return (
-            "The user just opened the app. Greet them warmly and welcome them back. "
-            "If they have logged exercises you may mention the most recent one; "
-            "if not, gently invite them to log their first."
+            "The user just opened the app and hasn't logged any exercise yet. "
+            "Greet them warmly and gently invite them to log their first one."
         )
     if kind == "workout":
         if facts.just_logged:

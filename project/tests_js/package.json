@@ -1,0 +1,12 @@
+{
+  "name": "repkin-js-tests",
+  "private": true,
+  "description": "Tests for the RepKin speech bubble script (static/core/repkin_bubble.js). Run with: npm install, then npm test. Tested with Node 22; jsdom 26 supports Node 18 and newer.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@sinonjs/fake-timers": "^15.4.0",
+    "jsdom": "^26.1.0"
+  }
+}

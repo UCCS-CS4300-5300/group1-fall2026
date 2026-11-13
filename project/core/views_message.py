@@ -8,15 +8,22 @@ from django.views.decorators.http import require_POST
 from .repkin_voice import KINDS, generate_message
 
 # The least time (in seconds) that must pass between two messages of the same
-# kind for the same person. Greetings and idle chatter are rate-limited so a
-# browser timer (or a bug) can't hammer the model. A workout comment is a
-# direct reaction to something the user just did, so it has no cooldown.
-COOLDOWN_SECONDS = {"greeting": 10, "workout": 0, "idle": 60} # THESE VALUES CAN BE ADJUSTED AS needed!!!
+# kind for the same person. Idle chatter is rate-limited so a browser timer (or
+# a bug) can't hammer the model. A workout comment is a direct reaction to
+# something the user just did, so it has no cooldown. A greeting has none
+# either: it is limited by the one-greeting-per-login rule below instead.
+COOLDOWN_SECONDS = {"greeting": 0, "workout": 0, "idle": 15}
+# HERE IS WHERE THE INITIAL DELIVERY TIMINGS FOR MESSAGES ARE SET FOR THE SERVER!
+# Additional tweeks for the 'idle' messages can be made in the repkin_bubble.js file.
 
 # The most exercise ids one workout request may name.
 MAX_LOG_IDS = 20
 
 # Where we remember things about this person's messages (in their session).
+# GREETING_PENDING_KEY is switched on at login (see firebase_session) and
+# switched off by the first greeting request, so each login gets exactly one
+# greeting. Logging out wipes the session, so the next login starts fresh.
+GREETING_PENDING_KEY = "repkin_greeting_pending"
 LAST_MESSAGE_KEY = "repkin_last_message"
 LAST_SERVED_KEY = "repkin_last_served"
 
@@ -65,6 +72,20 @@ def repkin_message(request):
         except ValueError:
             return JsonResponse(
                 {"error": "log_ids must be whole numbers (20 at most)."}, status=400
+            )
+
+    if kind == "greeting":
+        # Take the "this login is owed a greeting" mark, if there is one. Taking
+        # it BEFORE asking the model means a second tab or a refresh can't also
+        # get a greeting for the same login.
+        if not request.session.pop(GREETING_PENDING_KEY, False):
+            return JsonResponse(
+                {
+                    "message": None,
+                    "kind": kind,
+                    "fallback": False,
+                    "reason": "already_greeted",
+                }
             )
 
     wait = seconds_until_allowed(request.session, kind, current_time())
