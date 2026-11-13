@@ -12,6 +12,9 @@ from .firebase_auth import get_firestore_client, verify_firebase_id_token
 from .forms import RepkinSetupForm
 from .models import StarterItem
 from .models_repkin import Repkin
+from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
+
+from .views_message import GREETING_PENDING_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +72,7 @@ def firebase_session(request):
         user.save(update_fields=["password"])
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    request.session[GREETING_PENDING_KEY] = True
     return JsonResponse({"redirectUrl": "/"})
 
 
@@ -172,5 +176,20 @@ def render_home(request, repkin, setup_form, open_setup=False):
         "repkin": repkin,
         "setup_form": setup_form,
         "open_setup": open_setup,
+        "show_welcome": True,
     }
     return render(request, "core/home.html", context)
+
+#Second Page Request#
+@login_required
+def locker_room(request):
+    repkin = get_repkin(request.user)
+    arm_level = parse_arm_level(request.GET.get("arms"))
+    context = {
+        "repkin": repkin,
+        "setup_form": RepkinSetupForm(instance=repkin),
+        "arm_level": arm_level,
+        "arm_gif": ARM_VERSIONS[arm_level],
+        "next_arms": next_arm_level(arm_level),
+    }
+    return render(request, "core/locker_room.html", context)

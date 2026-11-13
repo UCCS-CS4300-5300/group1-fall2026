@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
-
+from core.models_repkin import Repkin
 from .models import StarterItem
 
 PASSWORD = "pw12345!"
@@ -147,10 +147,9 @@ def test_main_menu_button_interaction(logged_in_client):
 
 
 @pytest.mark.django_db
-def test_home_contains_practice_data_form(logged_in_client):
-    response = logged_in_client.get(reverse("core:home"))
-    assert b'id="practice-data-form"' in response.content
-    assert f'action="{reverse("core:practice_data")}"'.encode() in response.content
+def test_home_does_not_show_the_practice_data_panel(logged_in_client):
+    html = logged_in_client.get(reverse("core:home")).content.decode().lower()
+    assert "practice" not in html           # no panel, form, script, or leftover handler
 
 @pytest.fixture
 def home_html(logged_in_client):
@@ -183,10 +182,7 @@ def test_menu_shows_current_username(menu_html, user):
     assert f'value="{user.username}"' in menu_html
     assert "readonly" in menu_html
 
-
-@pytest.mark.django_db
-def test_menu_password_fields_are_masked(menu_html):
-    assert menu_html.count('type="password"') >= 2
+#Removed becausre password fields no longer in menu
 
 
 @pytest.mark.django_db
@@ -205,14 +201,68 @@ def test_hud_shows_signed_in_username(home_html, user):
 def test_hud_shows_repkin_mood_and_color(home_html):
     assert "mood" in home_html
     assert "color" in home_html
-
     
+@pytest.mark.django_db
+def test_menu_has_credits_button_and_overlay(home_html):
+    assert 'id="creditsButton"' in home_html
+    assert 'id="creditsOverlay"' in home_html
+    assert 'id="creditsExitButton"' in home_html
+    assert 'class="credits_overlay hidden"' in home_html
 
+@pytest.mark.django_db
+def test_menu_art_has_all_four_states(home_html):
+    for attr in ("data-lbs-on", "data-lbs-off", "data-kgs-on", "data-kgs-off"):
+        assert attr in home_html
+    for el_id in ("musicBtn", "lbsBtn", "kgsBtn"):
+        assert f'id="{el_id}"' in home_html
 
+@pytest.mark.django_db
+def test_home_has_locker_room_button(home_html):
+    assert 'id="locker-room-btn"' in home_html
+    assert 'href="/locker-room/"' in home_html
+    
+@pytest.mark.django_db
+def test_locker_room_renders(logged_in_client):
+    response = logged_in_client.get(reverse("core:locker_room"))
+    assert response.status_code == 200
+    assert b'<div class="stage">' in response.content
+    assert b'class="user-base-gif"' in response.content
 
+@pytest.mark.django_db
+@pytest.mark.parametrize("url_name", ["core:home", "core:locker_room"])
+def test_menu_is_on_both_rooms(logged_in_client, url_name):
+    html = logged_in_client.get(reverse(url_name)).content.decode()
+    assert 'id="mainMenu"' in html
+    assert 'id="mainMenuButton"' in html
+    assert "js/main_menu.js" in html
+    assert html.count('id="menuArt"') == 1
+    
+@pytest.mark.django_db
+def test_welcome_popup_is_remembered_across_pages(logged_in_client, user):
+    for name in ("core:home", "core:locker_room"):
+        html = logged_in_client.get(reverse(name)).content.decode()
+        assert f"repkinz.welcomeSeen.{user.pk}" in html
+        assert "markWelcomeSeen()" in html
+        
+@pytest.mark.django_db
+def test_home_has_no_customize_button(logged_in_client):
+    html = logged_in_client.get(reverse("core:home")).content.decode()
+    assert 'id="customize-btn"' not in html
+    
+@pytest.mark.django_db
+def test_welcome_popup_is_home_only(logged_in_client):
+    home = logged_in_client.get(reverse("core:home")).content.decode()
+    locker = logged_in_client.get(reverse("core:locker_room")).content.decode()
+    assert 'id="welcome-modal"' in home        # new user, setup not complete
+    assert 'id="welcome-modal"' not in locker
+    
+@pytest.mark.django_db
+def test_locker_room_requires_login(client):
+    response = client.get(reverse("core:locker_room"))
+    assert response.status_code == 302
 
-
-
-
-
-
+@pytest.mark.django_db
+def test_the_dumbbell_opens_only_the_log_exercise_modal(home_html):
+    assert home_html.count('id="log-exercise-btn"') == 1
+    assert home_html.count('id="exercise-modal"') == 1
+    assert "practice" not in home_html.lower()

@@ -22,5 +22,5 @@ LOGIN_URL = "login"
 CSRF_TRUSTED_ORIGINS = ["https://localhost:8000"]
 STATICFILES_DIRS = [BASE_DIR / "static"]
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "repkin-companion") # originally from llama3.2:3b, used a ModelFile to make a tailored chatbot.
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "repkin-companion:latest") # originally from llama3.2:3b, used a ModelFile to make a tailored chatbot.
 OLLAMA_TIMEOUT = 60

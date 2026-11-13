@@ -50,7 +50,20 @@ Do not rebuild infrastructure that already works. Use this baseline to reach one
 - Use the username and password you just created to login, and you should be taken to a home page unique to that account.
 
 # Windows command for firebase:
-- $env:FIREBASE_CREDENTIALS_PATH = "$((Get-Item .).FullName)/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json"
+- $env:FIREBASE_CREDENTIALS_PATH = "$((Get-Item .).FullName)/secrets/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json"
+
+# Ollama commands:
+python manage.py shell
+from core.ollama_client import chat
+chat([{"role": "user", "content": "<EXAMPLE_QUERY>"}])
+
+from django.contrib.auth import get_user_model
+from core.repkin_voice import generate_message
+user = get_user_model().objects.first()
+generate_message(user, "greeting")
+generate_message(user, "idle")
+
+ollama create repkin-companion -f ./Modelfile
 
 
 - When pulling the firebase login changes from main, there are a few things to do:

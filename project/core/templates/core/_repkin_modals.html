@@ -1,4 +1,4 @@
-{% if not repkin.setup_complete %}
+{% if show_welcome and not repkin.setup_complete %}
     <dialog id="welcome-modal" class="welcome-modal" aria-labelledby="welcome-title">
         <h2 id="welcome-title">Welcome to RepKinz!</h2>
         <p>Thank you for signing up, your RepKin is eager to meet you.</p>
@@ -54,10 +54,21 @@
         const welcomeModal = document.getElementById("welcome-modal");
         const setupModal = document.getElementById("setup-modal");
 
+        const WELCOME_KEY = "repkinz.welcomeSeen.{{ user.pk }}";
+        function welcomeSeen() {
+            try { return localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { return false; }
+        }
+        function markWelcomeSeen() {
+            try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {}
+        }
+
         {% if open_setup %}
             setupModal.showModal();
         {% elif not repkin.setup_complete %}
-            welcomeModal.showModal();
+            if (welcomeModal && !welcomeSeen()) {
+                welcomeModal.showModal();
+                markWelcomeSeen();
+            }
         {% endif %}
 
         const createButton = document.getElementById("create-repkin-btn");

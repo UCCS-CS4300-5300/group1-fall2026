@@ -62,12 +62,11 @@ def test_home_contains_setup_form_posting_to_setup_url(logged_in_client):
                   b'name="favorite_activity"', b'name="favorite_food"'):
         assert field in response.content
 
-
-def test_customize_button_is_always_available(logged_in_client, user):
-    Repkin.objects.create(owner=user, mood="happy", color="blue", setup_complete=True)
-    response = logged_in_client.get(reverse(HOME))
+#Changed because customize button moved
+@pytest.mark.django_db
+def test_customize_button_is_always_available(logged_in_client):
+    response = logged_in_client.get(reverse("core:locker_room"))
     assert b'id="customize-btn"' in response.content
-    assert b'id="setup-modal"' in response.content
 
 
 def test_fresh_home_page_shows_no_form_errors(logged_in_client):

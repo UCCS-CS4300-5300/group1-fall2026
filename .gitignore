@@ -9,3 +9,12 @@ project/.vscode/
 project/.coverage
 project/.vscode/
 git-team-workflow-lab/
+project/repkin-firebase-firebase-adminsdk-fbsvc-ba2ab06f37.json
+.venv/
+.DS_Store
+quality-evidence/
+
+# Python-generated cache files
+__pycache__/
+*.pyc
+project/setup.cfg

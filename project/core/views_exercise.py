@@ -37,7 +37,9 @@ def submit_exercise(request):
     # Prepare validated exercise data for the logging backend.
     data = build_exercise_data(form.cleaned_data)
 
-    # TODO: Call log_exercise(request.user, data) once available.
+    #TO do: Call log_exercise(request.user, data) once available.
+    log = log_exercise(request.user, data)
+    return JsonResponse({"success": True, "log_id": log.id}, status=200)
 
 
     log_exercise(request.user, data)
