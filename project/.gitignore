@@ -9,4 +9,3 @@ secrets/
 *firebase-adminsdk*.json
 node_modules/
 mutants/
-node_modules/
