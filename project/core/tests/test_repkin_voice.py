@@ -12,8 +12,10 @@ from core.models_repkin import Repkin
 from core.ollama_client import OllamaUnavailable
 from core.repkin_voice import (
     FALLBACK_LINES,
+    MAX_LAST_MESSAGE_CHARS,
     MAX_MESSAGE_CHARS,
     MAX_WORDS,
+    RECENT_EXERCISE_LIMIT,
     clean_reply,
     eligible_topics,
     gather_facts,
@@ -145,15 +147,17 @@ def test_new_user_prompt_says_no_exercises_logged(user, repkin, fake_chat):
     assert "haven't logged any exercises yet" in prompt_sent(fake_chat)
 
 
-def test_only_the_five_most_recent_exercises_are_included(user, repkin, fake_chat):
-    for days in range(7):
+def test_only_the_most_recent_exercises_are_included(user, repkin, fake_chat):
+    total = RECENT_EXERCISE_LIMIT + 2
+    for days in range(total):
         log_exercise(user, "squats", days_ago=days, sets=1, reps=days + 1)
     facts = gather_facts(user)
-    assert len(facts.recent_exercises) == 5
-    assert facts.recent_exercises[0].endswith("(today)")
-    assert facts.recent_exercises[1].endswith("(yesterday)")
-    assert facts.recent_exercises[2].endswith("(2 days ago)")
-    assert facts.exercises_this_week >= 6
+
+    assert len(facts.recent_exercises) == RECENT_EXERCISE_LIMIT
+    for days, line in enumerate(facts.recent_exercises):          # newest first
+        expected_when = {0: "today", 1: "yesterday"}.get(days, f"{days} days ago")
+        assert line.endswith(f"({expected_when})")
+    assert facts.exercises_this_week == sum(1 for days in range(total) if days <= 6)
 
 
 @pytest.mark.parametrize(
@@ -196,6 +200,24 @@ def test_a_user_with_no_repkin_still_works_and_nothing_is_created(user, fake_cha
 def test_greeting_prompt_asks_for_a_welcome(user, repkin, fake_chat):
     generate_message(user, "greeting")
     assert "just opened the app" in prompt_sent(fake_chat)
+
+
+def test_a_returning_user_is_welcomed_back_and_may_hear_about_their_last_exercise(
+    user, repkin, fake_chat
+):
+    log_exercise(user, "push_ups", sets=3, reps=10)
+    generate_message(user, "greeting")
+    prompt = prompt_sent(fake_chat)
+    assert "welcome them back" in prompt
+    assert "most recent exercise" in prompt
+
+
+def test_a_brand_new_user_is_not_told_welcome_back(user, repkin, fake_chat):
+    generate_message(user, "greeting")
+    prompt = prompt_sent(fake_chat)
+    assert "welcome them back" not in prompt
+    assert "hasn't logged any exercise yet" in prompt
+    assert "log their first one" in prompt
 
 
 def test_workout_prompt_lists_only_the_logs_just_submitted(user, repkin, fake_chat):
@@ -333,8 +355,8 @@ def test_previous_message_is_treated_as_untrusted_text(user, repkin, fake_chat):
     prompt = prompt_sent(fake_chat)
     line = [l for l in prompt.splitlines() if "Don't repeat" in l]
     assert len(line) == 1                      # still a single line in the prompt
-    assert len(line[0]) < 400                  # and cut down to a safe length
-    assert "x" * 300 not in prompt
+    assert len(line[0]) <= MAX_LAST_MESSAGE_CHARS + 150   # cut down (150 = the rule's own words)
+    assert "x" * (MAX_LAST_MESSAGE_CHARS + 1) not in prompt
 
 
 # --- what comes back ----------------------------------------------------------
@@ -357,14 +379,16 @@ def test_clean_reply_leaves_normal_apostrophes_alone():
 
 
 def test_a_long_reply_is_cut_at_the_last_full_sentence():
-    text = ("You worked so hard today and I am really proud of you. " * 6).strip()
+    sentence = "You did great today."
+    text = " ".join([sentence] * (MAX_MESSAGE_CHARS // len(sentence) + 3))
+    assert len(text) > MAX_MESSAGE_CHARS
     cleaned = clean_reply(text)
     assert len(cleaned) <= MAX_MESSAGE_CHARS
     assert cleaned.endswith(".")
 
 
 def test_a_long_reply_with_no_sentence_end_gets_an_ellipsis():
-    cleaned = clean_reply("so " * 200)
+    cleaned = clean_reply("so " * MAX_MESSAGE_CHARS)
     assert len(cleaned) <= MAX_MESSAGE_CHARS + 1
     assert cleaned.endswith("…")
 

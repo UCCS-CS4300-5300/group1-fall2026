@@ -1,0 +1,96 @@
+/* RepKin's speech bubble.
+   It is positioned inside .stage, just above the RepKin. To move it up or
+   down, change --bubble-bottom (the gap between the bubble and the bottom of
+   the stage). Each page can set --bubble-left (see _repkin_bubble.html) so
+   the bubble's tail points at the RepKin. */
+.repkin-bubble {
+    --bubble-bottom: 25%;
+
+    position: absolute;
+    left: var(--bubble-left, 50%);
+    bottom: var(--bubble-bottom);
+    transform: translateX(-50%);
+    z-index: 50;
+
+    width: max-content;
+    max-width: 78%;
+    /* Even if a message is longer than we expect, the bubble can never take
+       over the screen: it stops growing and scrolls instead. */
+    max-height: 22%;
+    overflow-y: auto;
+
+    padding: 0.7rem 2rem 0.7rem 0.9rem;
+    box-sizing: border-box;
+    color: #1c2430;
+    background: #fff;
+    border: 1px solid #d5dae1;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    font-family: system-ui, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
+/* "hidden" must win over the display rules above. */
+.repkin-bubble[hidden] {
+    display: none;
+}
+
+.repkin-bubble__text {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* The little tail that points down at the RepKin. */
+.repkin-bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    transform: translateX(-50%);
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 9px solid #fff;
+}
+
+.repkin-bubble__close {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: #5b6673;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.repkin-bubble__close:hover {
+    background: #eef1f4;
+}
+
+.repkin-bubble__close:focus-visible {
+    outline: 3px solid #1f5f8b;
+    outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .repkin-bubble {
+        animation: repkin-bubble-in 0.2s ease-out;
+    }
+
+    @keyframes repkin-bubble-in {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+}

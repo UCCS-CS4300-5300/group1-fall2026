@@ -1,0 +1,25 @@
+{% load static %}
+{% comment %}
+RepKin's speech bubble. It stays hidden until repkin_bubble.js has a message.
+
+Options when including this partial (both optional):
+  bubble_kinds  which messages THIS page may ask for, comma separated.
+                Default: "greeting,workout,idle"  (the workout room)
+                The locker room uses "idle" so it never takes the login's greeting.
+  bubble_left   where the bubble is centred across the stage. Default: 50%
+
+Example:  {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
+
+(The names start with "bubble_" on purpose: plain "messages" would clash with
+Django's own messages variable.)
+{% endcomment %}
+<div id="repkin-bubble" class="repkin-bubble" hidden
+     role="status" aria-live="polite"
+     data-message-url="{% url 'core:repkin_message' %}"
+     data-csrf-token="{{ csrf_token }}"
+     data-messages="{{ bubble_kinds|default:'greeting,workout,idle' }}"
+     style="--bubble-left: {{ bubble_left|default:'50%' }};">
+    <p class="repkin-bubble__text"></p>
+    <button type="button" class="repkin-bubble__close" aria-label="Dismiss message">&times;</button>
+</div>
+<script src="{% static 'core/repkin_bubble.js' %}" defer></script>
