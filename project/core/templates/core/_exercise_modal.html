@@ -10,17 +10,14 @@
 
         <select id="exercise-type" name="exercise_type">
             <option value="">-- Select an Exercise --</option>
-            <option value="push_ups" data-input-type="reps">Push Ups</option>
-            <option value="sit_ups" data-input-type="reps">Sit Ups</option>
-            <option value="squats" data-input-type="reps">Squats</option>
-            <option value="planks" data-input-type="duration">Planks</option>
-            <option value="curls" data-input-type="reps">Curls</option>
-            <option value="walking" data-input-type="distance">Walking</option>
-            <option value="jogging" data-input-type="distance">Jogging</option>
-            <option value="running" data-input-type="distance">Running</option>
-            <option value="lunges" data-input-type="reps">Lunges</option>
-            <option value="butterfly_stretch" data-input-type="duration">Butterfly Stretch</option>
-            <option value="shoulder_stretch" data-input-type="duration">Shoulder Stretch</option>
+
+            {% for exercise in exercises %}
+                <option
+                    value="{{ exercise.name }}"
+                    data-input-type="{{ exercise.input_type }}">
+                    {{ exercise.label }}
+                </option>
+            {% endfor %}
         </select>
 
         <!-- Repetition Inputs -->
