@@ -1,6 +1,7 @@
 from django.db import models
 from .models_repkin import Repkin
 from .models_exercise import ExerciseLog
+from .models_workout import Workout, WorkoutExercise
 
 class StarterItem(models.Model):
     title = models.CharField(max_length=120)

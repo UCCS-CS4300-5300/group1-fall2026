@@ -1,41 +1,13 @@
 from decimal import Decimal
 from django import forms
+from .exercises import DISTANCE, DURATION, EXERCISES, REPS, exercise_label
 
 
 class ExerciseInputForm(forms.Form):
-    EXERCISE_CHOICES = [
-        ("push_ups", "Push Ups"),
-        ("sit_ups", "Sit Ups"),
-        ("squats", "Squats"),
-        ("planks", "Planks"),
-        ("curls", "Curls"),
-        ("walking", "Walking"),
-        ("jogging", "Jogging"),
-        ("running", "Running"),
-        ("lunges", "Lunges"),
-        ("butterfly_stretch", "Butterfly Stretch"),
-        ("shoulder_stretch", "Shoulder Stretch"),
-    ]
-
-    REPETITION_EXERCISES = {
-        "push_ups",
-        "sit_ups",
-        "squats",
-        "curls",
-        "lunges",
-    }
-
-    DURATION_EXERCISES = {
-        "planks",
-        "butterfly_stretch",
-        "shoulder_stretch",
-    }
-
-    DISTANCE_EXERCISES = {
-        "walking",
-        "jogging",
-        "running",
-    }
+    EXERCISE_CHOICES = [(key, exercise_label(key)) for key in EXERCISES]
+    REPETITION_EXERCISES = {key for key, entry in EXERCISES.items() if entry["input_type"] == REPS}
+    DURATION_EXERCISES = {key for key, entry in EXERCISES.items() if entry["input_type"] == DURATION}
+    DISTANCE_EXERCISES = {key for key, entry in EXERCISES.items() if entry["input_type"] == DISTANCE}
 
     exercise_type = forms.ChoiceField(
         choices=EXERCISE_CHOICES
