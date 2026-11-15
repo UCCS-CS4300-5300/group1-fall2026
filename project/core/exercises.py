@@ -16,6 +16,10 @@ EXERCISES = {
     "walking":           {"input_type": DISTANCE, "split": {"endurance": 100}},
     "jogging":           {"input_type": DISTANCE, "split": {"dexterity": 20, "endurance": 80}},
     "running":           {"input_type": DISTANCE, "split": {"dexterity": 30, "endurance": 70}},
+    "bench_presses":     {"input_type": REPS,     "split": {"strength": 100}},
+    "deadlifts":         {"input_type": REPS,     "split": {"strength":80, "endurance": 20}},
+    "hamstring_stretch":  {"input_type": DURATION, "split": {"dexterity": 100}},
+
 }
 
 # How much effort each unit is worth, so different exercise types are comparable.
