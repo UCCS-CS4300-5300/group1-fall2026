@@ -54,31 +54,34 @@
         <img id="menuArt"
             src="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
             alt="Main Menu" class="main_menu_png"
-            data-lbs-on="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
-            data-lbs-off="{% static 'img/main_menu_pngs/main_menu_lbs_off.png' %}"
-            data-kgs-on="{% static 'img/main_menu_pngs/main_menu_kgs_on.png' %}"
-            data-kgs-off="{% static 'img/main_menu_pngs/main_menu_kgs_off.png' %}">
+            data-si-on="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
+            data-si-off="{% static 'img/main_menu_pngs/main_menu_si_off.png' %}"
+            data-imp-on="{% static 'img/main_menu_pngs/main_menu_imp_on.png' %}"
+            data-imp-off="{% static 'img/main_menu_pngs/main_menu_imp_off.png' %}">
 
         <button type="button" id="menuExitButton" class="menu_field" aria-label="Close menu"
                 style="--l:85%; --t:5.2%; --w:5.2%; --h:4.6%"></button>
 
-        <!-- Name -->
-        <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current Repkin name"
-            style="--l:55.5%; --t:19.7%; --w:20%; --h:2.7%">
-        <form class="menu_form">
-            <input class="menu_field" name="name" aria-label="Change Repkin name"
-                style="--l:55.5%; --t:23.3%; --w:20%; --h:2.7%">
+        <!-- Repkin Name -->
+        <input class="menu_field" id="cur-repkin-name" readonly value="{{ repkin.name }}"
+            aria-label="Current Repkin name" style="--l:55.5%; --t:19.7%; --w:20%; --h:2.7%">
+        <form class="menu_form" method="post" action="{% url 'core:update_repkin_name' %}"
+            data-display="cur-repkin-name" data-key="name">
+            {% csrf_token %}
+            <input class="menu_field" name="name" maxlength="30" autocomplete="off"
+                aria-label="Change Repkin name" style="--l:55.5%; --t:23.3%; --w:20%; --h:2.7%">
             <button type="submit" class="menu_field" aria-label="Submit Repkin name"
                     style="--l:68%; --t:26%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Username -->
-        <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current  username"
+        <input class="menu_field" id="cur-user-name" readonly value="{{ user.first_name }}" aria-label="Current name"
             style="--l:55.5%; --t:32%; --w:20%; --h:2.7%">
-        <form class="menu_form">
-            <input class="menu_field" name="username" aria-label="Change username"
+        <form class="menu_form" method="post" action="{% url 'core:update_user_name' %}" data-display="cur-user-name" data-key="name">
+            {% csrf_token %}
+            <input class="menu_field" name="name" maxlenth="30" autocomplete= "off" aria-label="Change name"
                 style="--l:55.5%; --t:35.5%; --w:20%; --h:2.7%">
-            <button type="submit" class="menu_field" aria-label="Submit username"
+            <button type="submit" class="menu_field" aria-label="Submit name"
                     style="--l:68%; --t:38.5%; --w:8%; --h:1.8%"></button>
         </form>
 
@@ -124,9 +127,9 @@
         <!-- Music Control -->
         <button type="button" id="musicBtn" class="menu_field" aria-label="Music" aria-pressed="true"
             style="--l:40.8%; --t:77.7%; --w:3.8%; --h:3.2%"></button>
-        <button type="button" id="lbsBtn" class="menu_field" aria-label="Pounds" aria-pressed="true"
+        <button type="button" id="siBtn" class="menu_field" aria-label="Imperial" aria-pressed="true"
                 style="--l:40.8%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
-        <button type="button" id="kgsBtn" class="menu_field" aria-label="Kilograms" aria-pressed="false"
+        <button type="button" id="impBtn" class="menu_field" aria-label="SI" aria-pressed="false"
                 style="--l:46.9%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
     
 

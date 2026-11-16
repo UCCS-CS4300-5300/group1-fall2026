@@ -30,32 +30,31 @@
     document.getElementById("creditsButton").addEventListener("click", () => creditsOverlay.classList.remove("hidden"));
     creditsOverlay.addEventListener("click", (e) => { e.stopPropagation(); creditsOverlay.classList.add("hidden"); });
 
-    // settings forms aren't wired to the server yet
-    document.querySelectorAll(".menu_form").forEach((f) => f.addEventListener("submit", (e) => e.preventDefault()));
-
     // music and units, remembered across pages
     const art = document.getElementById("menuArt");
     const music = document.getElementById("bg-music");
     const musicBtn = document.getElementById("musicBtn");
-    const lbsBtn = document.getElementById("lbsBtn");
-    const kgsBtn = document.getElementById("kgsBtn");
+    const impBtn = document.getElementById("impBtn");
+    const siBtn = document.getElementById("siBtn");
     const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } };
     const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 
     let musicOn = load("repkinz.music", "on") === "on";
-    let unit = load("repkinz.unit", "lbs");
+    let unit = load("repkinz.unit", "imp");
+    if (unit === "lbs") unit = "imp";   // values saved by the old version
+    if (unit === "kgs") unit = "si";
 
     function render() {
         art.src = art.dataset[unit + (musicOn ? "On" : "Off")];
         musicBtn.setAttribute("aria-pressed", String(musicOn));
-        lbsBtn.setAttribute("aria-pressed", String(unit === "lbs"));
-        kgsBtn.setAttribute("aria-pressed", String(unit === "kgs"));
+        impBtn.setAttribute("aria-pressed", String(unit === "imp"));
+        siBtn.setAttribute("aria-pressed", String(unit === "si"));
         if (music) { musicOn ? music.play().catch(() => {}) : music.pause(); }
     }
 
     musicBtn.addEventListener("click", () => { musicOn = !musicOn; save("repkinz.music", musicOn ? "on" : "off"); render(); });
-    lbsBtn.addEventListener("click", () => { unit = "lbs"; save("repkinz.unit", unit); render(); });
-    kgsBtn.addEventListener("click", () => { unit = "kgs"; save("repkinz.unit", unit); render(); });
+    impBtn.addEventListener("click", () => { unit = "imp"; save("repkinz.unit", unit); render(); });
+    siBtn.addEventListener("click", () => { unit = "si"; save("repkinz.unit", unit); render(); });
 
     // browsers block autoplay with sound, so start on the first click if music is on
     document.addEventListener("pointerdown", () => {
@@ -63,4 +62,31 @@
     }, { once: true });
 
     render();
+
+    //Forms that save information through the server and update the display boxes
+    document.querySelectorAll(".menu_form[data-key]").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();                       // stop the page reload
+        const box = document.getElementById(form.dataset.display);
+        const old = box.value;
+        try {
+            const res = await fetch(form.action, {
+                method: "POST",
+                body: new FormData(form),         // includes the csrf token
+                credentials: "same-origin",
+            });
+            const data = await res.json();
+            if (res.ok) {
+                box.value = data[form.dataset.key];   // show the saved value
+                form.reset();                         // clear the typing box
+            } else {
+                box.value = data.error || "Could not save.";
+                setTimeout(() => { box.value = old; }, 2000);
+            }
+        } catch (err) {
+            box.value = "Network error.";
+            setTimeout(() => { box.value = old; }, 2000);
+        }
+        });
+    });
 })();

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from core.models_repkin import Repkin
 from .models import StarterItem
+from unittest.mock import patch
 
 PASSWORD = "pw12345!"
 
@@ -178,14 +179,6 @@ def test_menu_has_panel_and_fields(menu_html):
 
 
 @pytest.mark.django_db
-def test_menu_shows_current_username(menu_html, user):
-    assert f'value="{user.username}"' in menu_html
-    assert "readonly" in menu_html
-
-#Removed becausre password fields no longer in menu
-
-
-@pytest.mark.django_db
 def test_menu_logout_form_posts_to_logout(menu_html):
     assert f'action="{reverse("core:logout")}"' in menu_html
     assert "csrfmiddlewaretoken" in menu_html
@@ -194,7 +187,7 @@ def test_menu_logout_form_posts_to_logout(menu_html):
 @pytest.mark.django_db
 def test_hud_shows_signed_in_username(home_html, user):
     assert "Signed in as" in home_html
-    assert user.username in home_html
+    assert user.first_name in home_html
 
 
 @pytest.mark.django_db
@@ -211,9 +204,9 @@ def test_menu_has_credits_button_and_overlay(home_html):
 
 @pytest.mark.django_db
 def test_menu_art_has_all_four_states(home_html):
-    for attr in ("data-lbs-on", "data-lbs-off", "data-kgs-on", "data-kgs-off"):
+    for attr in ("data-imp-on", "data-imp-off", "data-si-on", "data-si-off"):
         assert attr in home_html
-    for el_id in ("musicBtn", "lbsBtn", "kgsBtn"):
+    for el_id in ("musicBtn", "impBtn", "siBtn"):
         assert f'id="{el_id}"' in home_html
 
 @pytest.mark.django_db
@@ -266,3 +259,78 @@ def test_the_dumbbell_opens_only_the_log_exercise_modal(home_html):
     assert home_html.count('id="log-exercise-btn"') == 1
     assert home_html.count('id="exercise-modal"') == 1
     assert "practice" not in home_html.lower()
+
+
+@pytest.mark.django_db
+def test_update_repkin_name_saves(logged_in_client, user):
+    r = logged_in_client.post(reverse("core:update_repkin_name"), {"name": "Chase"})
+    assert r.status_code == 200
+    assert r.json() == {"name": "Chase"}
+    assert user.repkin.name == "Chase"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("bad", ["", "   ", "x" * 31])
+def test_update_repkin_name_rejects_bad_input(logged_in_client, bad):
+    r = logged_in_client.post(reverse("core:update_repkin_name"), {"name": bad})
+    assert r.status_code == 400
+
+
+@pytest.mark.django_db
+def test_update_repkin_name_requires_login(client):
+    r = client.post(reverse("core:update_repkin_name"), {"name": "Chase"})
+    assert r.status_code == 302
+
+
+@pytest.mark.django_db
+def test_update_repkin_name_rejects_get(logged_in_client):
+    assert logged_in_client.get(reverse("core:update_repkin_name")).status_code == 405
+    
+@pytest.mark.django_db
+def test_updated_name(logged_in_client, user):
+    r = logged_in_client.post(reverse("core:update_user_name"), {"name": "Bradley"})
+    assert r.status_code == 200
+    assert r.json() == {"name": "Bradley"}
+    user.refresh_from_db()
+    assert user.first_name == "Bradley"
+    
+@pytest.mark.django_db
+def test_menu_shows_saved_repkin_name(logged_in_client):
+    logged_in_client.post(reverse("core:update_repkin_name"), {"name": "Chase"})
+    html = logged_in_client.get(reverse("core:home")).content.decode()
+    assert 'id="cur-repkin-name"' in html
+    assert 'value="Chase"' in html
+    
+
+@pytest.mark.django_db
+def test_repkin_name_form_posts_to_the_route(home_html):
+    assert f'action="{reverse("core:update_repkin_name")}"' in home_html
+    assert 'data-display="cur-repkin-name"' in home_html
+    
+@pytest.mark.django_db
+def test_menu_shows_saved_name(logged_in_client):
+    logged_in_client.post(reverse("core:update_user_name"), {"name": "Bradley"})
+    html = logged_in_client.get(reverse("core:home")).content.decode()
+    assert 'id="cur-user-name"' in html
+    assert 'value="Bradley"' in html
+    
+
+@pytest.mark.django_db
+def test_user_name_form_posts_to_the_route(home_html):
+    assert f'action="{reverse("core:update_user_name")}"' in home_html
+    assert 'data-display="cur-user-name"' in home_html
+
+@pytest.mark.django_db
+def test_update_user_name_saves(logged_in_client, user):
+    r = logged_in_client.post(reverse("core:update_user_name"), {"name": "Sam"})
+    assert r.json() == {"name": "Sam"}
+    user.refresh_from_db()
+    assert user.first_name == "Sam"
+
+@pytest.mark.django_db
+def test_menu_shows_first_name_not_firebase_id(logged_in_client, user):
+    user.first_name = "Sam"
+    user.save()
+    html = logged_in_client.get(reverse("core:home")).content.decode()
+    assert 'id="cur-user-name"' in html
+    assert 'value="Sam"' in html
