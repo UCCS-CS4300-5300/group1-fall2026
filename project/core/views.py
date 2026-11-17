@@ -194,7 +194,8 @@ def locker_room(request):
     }
     return render(request, "core/locker_room.html", context)
 
-#Information to be pulled and displayed in the main menu on both pages#
+
+#Information to be pulled and displayed in the main menu on both pages(Repkin Name and Username)#
 @login_required
 def _clean_name(request):
     name = request.POST.get("name", "").strip()
@@ -219,10 +220,6 @@ def _firebase_uid(request):
         return username.removeprefix(prefix)
     return None
 
-
-PROFILE_LIMITS = {"height_cm": (50, 250), "weight_kg": (10, 650)}
-
-
 @login_required
 @require_POST
 def update_user_name(request):
@@ -233,6 +230,8 @@ def update_user_name(request):
     request.user.save(update_fields=["first_name"])
     return JsonResponse({"name": name})
 
+PROFILE_LIMITS = {"height_cm": (50, 250), "weight_kg": (10, 650)}
+#PII Handling
 @login_required
 @require_http_methods(["GET", "POST"])
 def profile_data(request):
@@ -264,3 +263,4 @@ def profile_data(request):
     except Exception:
         logger.exception("Profile storage failed for Firebase UID %s", uid)
         return JsonResponse({"error": "Profile storage is unavailable."}, status=503)
+    

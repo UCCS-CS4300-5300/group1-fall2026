@@ -36,8 +36,8 @@
         </button>
 
         <div class="repkin-summary">
-            <p>Signed in as {{ user.username }}</p>
-            <p>{{ user.username }}'s RepKin: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
+            <p>Signed in as <span id="sum-user-name" data-mirror="cur-user-name">{{ user.first_name|default:"Player" }}</span></p>
+            <p><span id="sum-user-name" data-mirror="cur-user-name">{{ user.first_name|default:"Player" }}</span>'s Repkin <span id="sum-repkin-name" data-mirror="cur-repkin-name">{{ repkin.name|default:"Your RepKin" }}</span>: mood {{ repkin.mood }}, color {{ repkin.color }}</p>
         </div>
 
         <!-- Exercise Logging -->
@@ -86,20 +86,22 @@
         </form>
 
         <!-- Height -->
-        <input class="menu_field" readonly aria-label="Current height"
+        <input class="menu_field" id="cur-height" readonly aria-label="Current height"
             style="--l:55.9%; --t:48.5%; --w:20%; --h:2.7%">
-        <form class="menu_form">
-            <input class="menu_field" name="height" aria-label="Update height"
+        <form class="menu_form" method="post" action="{% url 'core:profile_data' %}" data-profile="height_cm">
+            {% csrf_token %}
+            <input class="menu_field" name="height_cm" autocomplete="off" aria-label="Update height"
                 style="--l:55.8%; --t:52%; --w:20%; --h:2.7%">
             <button type="submit" class="menu_field" aria-label="Submit height"
                     style="--l:69%; --t:54.5%; --w:8%; --h:1.8%"></button>
         </form>
 
         <!-- Weight -->
-        <input class="menu_field" readonly aria-label="Current weight"
+        <input class="menu_field" id="cur-weight" readonly aria-label="Current weight"
             style="--l:55.9%; --t:61.1%; --w:20%; --h:2.6%">
-        <form class="menu_form">
-            <input class="menu_field" name="weight" aria-label="Update weight"
+        <form class="menu_form" method="post" action="{% url 'core:profile_data' %}" data-profile="weight_kg">
+            {% csrf_token %}
+            <input class="menu_field" name="weight_kg" autocomplete="off" aria-label="Update weight"
                 style="--l:55.9%; --t:64.5%; --w:20%; --h:2.4%">
             <button type="submit" class="menu_field" aria-label="Submit weight"
                     style="--l:69%; --t:67%; --w:8%; --h:1.8%"></button>
@@ -230,6 +232,8 @@
     </script>
 
 
+<script src="{% static 'js/unit_conversion.js' %}"></script>
 <script src="{% static 'js/main_menu.js' %}"></script>
+<script src="{% static 'js/profile.js' %}"></script>
 </body>
 </html>

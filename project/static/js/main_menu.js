@@ -50,11 +50,19 @@
         impBtn.setAttribute("aria-pressed", String(unit === "imp"));
         siBtn.setAttribute("aria-pressed", String(unit === "si"));
         if (music) { musicOn ? music.play().catch(() => {}) : music.pause(); }
+        document.documentElement.dataset.unit = unit;
+    }
+
+    function setUnit(u) {
+        unit = u;
+        save("repkinz.unit", unit);
+        render();
+        document.dispatchEvent(new CustomEvent("unitchange"));
     }
 
     musicBtn.addEventListener("click", () => { musicOn = !musicOn; save("repkinz.music", musicOn ? "on" : "off"); render(); });
-    impBtn.addEventListener("click", () => { unit = "imp"; save("repkinz.unit", unit); render(); });
-    siBtn.addEventListener("click", () => { unit = "si"; save("repkinz.unit", unit); render(); });
+    impBtn.addEventListener("click", () => setUnit("imp"));
+    siBtn.addEventListener("click", () => setUnit("si"));
 
     // browsers block autoplay with sound, so start on the first click if music is on
     document.addEventListener("pointerdown", () => {
@@ -77,8 +85,10 @@
             });
             const data = await res.json();
             if (res.ok) {
-                box.value = data[form.dataset.key];   // show the saved value
-                form.reset();                         // clear the typing box
+                box.value = data[form.dataset.key];   // current-name box
+                document.querySelectorAll('[data-mirror="' + form.dataset.display + '"]')
+                    .forEach((el) => { el.textContent = data[form.dataset.key]; });
+                form.reset();
             } else {
                 box.value = data.error || "Could not save.";
                 setTimeout(() => { box.value = old; }, 2000);

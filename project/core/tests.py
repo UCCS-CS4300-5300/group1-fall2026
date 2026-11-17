@@ -141,6 +141,7 @@ def test_logout_message(logged_in_client):
     assert messages == ["You've been logged out."]
 
 
+#
 @pytest.mark.django_db
 def test_main_menu_button_interaction(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
@@ -334,3 +335,55 @@ def test_menu_shows_first_name_not_firebase_id(logged_in_client, user):
     html = logged_in_client.get(reverse("core:home")).content.decode()
     assert 'id="cur-user-name"' in html
     assert 'value="Sam"' in html
+    
+@pytest.mark.django_db
+def test_menu_has_height_weight_forms(home_html):
+    for el_id in ("cur-height", "cur-weight"):
+            assert f'id="{el_id}"' in home_html
+    assert 'data-profile="height_cm"' in home_html
+    assert 'data-profile="weight_kg"' in home_html
+    assert "js/unit_conversion.js" in home_html and "js/profile.js" in home_html
+    assert home_html.index("unit_conversion.js") < home_html.index("profile.js")
+    
+@pytest.mark.django_db
+def test_summary_mirrors_name_boxes(home_html):
+    assert 'data-mirror="cur-user-name"' in home_html
+    assert 'data-mirror="cur-repkin-name"' in home_html
+    
+#Unit Tests (SI and Imperial)
+def _fb_user(client, django_user_model):
+    client.force_login(django_user_model.objects.create_user("firebase_abc123"))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field,value", [
+    ("height_cm", "50"), ("height_cm", "250"),     # limits are inclusive
+    ("weight_kg", "10"), ("weight_kg", "650"),
+])
+def test_profile_accepts_boundary_values(client, django_user_model, field, value):
+    _fb_user(client, django_user_model)
+    with patch("core.views.get_firestore_client"):
+        assert client.post(reverse("core:profile_data"), {field: value}).status_code == 200
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field,value", [
+    ("height_cm", "49.9"), ("height_cm", "250.1"),
+    ("weight_kg", "9.9"), ("weight_kg", "650.1"),
+    ("height_cm", "inf"), ("weight_kg", "nan"), ("height_cm", ""),
+])
+def test_profile_rejects_out_of_range(client, django_user_model, field, value):
+    _fb_user(client, django_user_model)
+    with patch("core.views.get_firestore_client") as fake:
+        r = client.post(reverse("core:profile_data"), {field: value})
+    assert r.status_code == 400
+    fake.return_value.collection.return_value.document.return_value.set.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_profile_rounds_to_one_decimal(client, django_user_model):
+    _fb_user(client, django_user_model)
+    with patch("core.views.get_firestore_client") as fake:
+        ref = fake.return_value.collection.return_value.document.return_value
+        client.post(reverse("core:profile_data"), {"weight_kg": "74.8349"})
+    ref.set.assert_called_once_with({"weight_kg": 74.8}, merge=True)
