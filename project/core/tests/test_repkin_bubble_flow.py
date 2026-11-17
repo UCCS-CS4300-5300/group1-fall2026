@@ -164,12 +164,15 @@ def test_the_bubble_script_listens_for_the_exercise_logged_event():
     assert 'addEventListener("exercise:logged"' in js_source
 
 
-@pytest.mark.skip(
-    reason="The old home-page modal fired this event and is gone. Phase 4 adds the "
-           "new dispatcher and rewrites this test to check it."
-)
+
+
 def test_the_page_announces_new_logs_with_the_event_the_bubble_listens_for():
-    ...
+    """After a workout is logged, the home page tells the bubble about it."""
+    handoff_js = open(finders.find("js/workout_logged.js"), encoding="utf-8").read()
+    home_source = open(get_template("core/home.html").origin.name, encoding="utf-8").read()
+    assert 'CustomEvent("exercise:logged"' in handoff_js
+    assert "logIds" in handoff_js
+    assert "js/workout_logged.js" in home_source
 
 
 # --- logging an exercise and hearing about it ---------------------------------

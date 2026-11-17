@@ -20,6 +20,7 @@ urlpatterns = [
     path("repkin/message/", repkin_message, name="repkin_message"),
     path("locker-room/", views.locker_room, name="locker_room"),
     path("workouts/", views_workout.workout_logging, name="workout_logging"),
+    path("workouts/log/", views_workout.workout_log, name="workout_log"),
     path("workouts/catalog/", views_workout.workout_catalog, name="workout_catalog"),
     path("workouts/presets/", views_workout.preset_list, name="workout_presets"),
     path("workouts/presets/save/", views_workout.preset_save, name="workout_preset_save"),

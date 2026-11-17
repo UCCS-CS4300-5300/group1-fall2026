@@ -59,6 +59,7 @@ def test_page_points_the_script_at_the_real_endpoints(page):
     assert 'data-save-url="/workouts/presets/save/"' in page
     assert 'data-detail-url="/workouts/presets/0/"' in page
     assert 'data-delete-url="/workouts/presets/0/delete/"' in page
+    assert 'data-log-url="/workouts/log/"' in page
     assert 'data-home-url="/"' in page
 
 
@@ -77,10 +78,10 @@ def test_page_links_back_to_the_workout_room(page):
     assert 'href="/"' in page
 
 
-def test_page_has_save_and_log_buttons_and_log_is_off_for_now(page):
-    assert re.search(r'id="wl-save"', page)
-    log_button = re.search(r'<button[^>]*id="wl-log"[^>]*>', page).group(0)
-    assert "disabled" in log_button
+def test_page_has_save_and_log_buttons_and_both_are_switched_on(page):
+    for button_id in ("wl-save", "wl-log"):
+        button = re.search(rf'<button[^>]*id="{button_id}"[^>]*>', page).group(0)
+        assert "disabled" not in button
 
 
 def test_every_element_the_script_looks_up_exists_in_the_template(page):

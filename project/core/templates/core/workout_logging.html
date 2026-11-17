@@ -16,6 +16,7 @@
          data-save-url="{% url 'core:workout_preset_save' %}"
          data-detail-url="{% url 'core:workout_preset_detail' 0 %}"
          data-delete-url="{% url 'core:workout_preset_delete' 0 %}"
+         data-log-url="{% url 'core:workout_log' %}"
          data-csrf-token="{{ csrf_token }}">
 
         <header class="wl-header">
@@ -59,9 +60,7 @@
 
             <div class="wl-footer">
                 <button type="button" id="wl-save" class="wl-button wl-button--primary">Save preset</button>
-                <!-- Logging a whole workout arrives in the next phase. -->
-                <button type="button" id="wl-log" class="wl-button" disabled
-                        title="Logging a whole workout is coming soon">Log workout</button>
+                <button type="button" id="wl-log" class="wl-button">Log workout</button>
             </div>
         </form>
 

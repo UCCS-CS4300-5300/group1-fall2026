@@ -17,6 +17,10 @@
     const MAX_REPS = 1000;
     const MAX_DURATION_SECONDS = 24 * 60 * 60;
 
+    // After logging, the home page is told which logs were just made so RepKin can
+    // comment on them (see static/js/workout_logged.js, which reads this same key).
+    const HANDOFF_KEY = "repkinz.pendingWorkoutLog";
+
     // Mirrors core/units.py. The main menu saves "lbs" or "kgs" under this key.
     const UNIT_KEY = "repkinz.unit";
     const UNIT_LABELS = {
@@ -38,6 +42,7 @@
             saveUrl: app.dataset.saveUrl,
             detailUrl: app.dataset.detailUrl,
             deleteUrl: app.dataset.deleteUrl,
+            logUrl: app.dataset.logUrl,
             csrf: app.dataset.csrfToken,
         };
 
@@ -543,13 +548,14 @@
             return payload;
         }
 
-        // Disabling the button while a save is in flight is what stops a double-click
-        // from saving twice.
+        // Disabling the buttons while a save or log is in flight is what stops a
+        // double-click from doing it twice.
         function setBusy(busy) {
             el.save.disabled = busy;
+            el.log.disabled = busy;
         }
 
-        function finishSaved() {
+        function goHome() {
             state.dirty = false;
             env.navigate(config.homeUrl);
         }
@@ -583,12 +589,63 @@
                 }
 
                 if (result.ok) {
-                    finishSaved();
+                    goHome();
                 } else if (result.status === 400 && result.data.errors) {
                     showErrors(result.data.message || "Please fix the problems below.",
                         serverErrorLines(result.data.errors));
                 } else {
                     showErrors(result.data.message || "Your workout couldn't be saved. Please try again.");
+                }
+            } catch (e) {
+                showErrors("Couldn't reach the server. Check your connection and try again.");
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        // ---- Logging -----------------------------------------------------------------
+        function rememberLogsForHome(logIds) {
+            try {
+                if (env.sessionStorage) {
+                    env.sessionStorage.setItem(
+                        HANDOFF_KEY, JSON.stringify({ logIds: logIds, at: env.now() })
+                    );
+                }
+            } catch (e) {
+                // Without it RepKin just won't comment this time. The workout IS logged.
+            }
+        }
+
+        async function onLog() {
+            clearMessages();
+            if (totalItems() === 0) {
+                showErrors("Add at least one exercise before logging.");
+                return;
+            }
+            const sure = env.confirm(
+                "Log this workout now? It counts toward RepKin's stats and can't be undone. " +
+                "It isn't saved as a preset, so use Save preset for that."
+            );
+            if (!sure) {
+                return;
+            }
+
+            setBusy(true);
+            try {
+                // A log needs no name, and isn't an update of any preset.
+                const payload = buildPayload();
+                delete payload.name;
+                delete payload.id;
+                const result = await post(config.logUrl, payload);
+
+                if (result.ok && Array.isArray(result.data.log_ids)) {
+                    rememberLogsForHome(result.data.log_ids);
+                    goHome();
+                } else if (result.status === 400 && result.data.errors) {
+                    showErrors(result.data.message || "Please fix the problems below.",
+                        serverErrorLines(result.data.errors));
+                } else {
+                    showErrors(result.data.message || "Your workout couldn't be logged. Please try again.");
                 }
             } catch (e) {
                 showErrors("Couldn't reach the server. Check your connection and try again.");
@@ -736,6 +793,7 @@
             el.create.addEventListener("click", onCreate);
             el.load.addEventListener("click", onLoadToggle);
             el.save.addEventListener("click", onSave);
+            el.log.addEventListener("click", onLog);
             el.name.addEventListener("input", () => { state.dirty = true; });
             el.pickerForm.addEventListener("submit", onPickerSubmit);
             el.pickerCancel.addEventListener("click", closePicker);
@@ -763,6 +821,12 @@
         } catch (e) {
             storage = null;
         }
+        let sessionStorage = null;
+        try {
+            sessionStorage = window.sessionStorage;
+        } catch (e) {
+            sessionStorage = null;
+        }
         return {
             window: window,
             document: document,
@@ -770,6 +834,8 @@
             confirm: window.confirm.bind(window),
             navigate: (url) => window.location.assign(url),
             storage: storage,
+            sessionStorage: sessionStorage,
+            now: () => Date.now(),
         };
     }
 

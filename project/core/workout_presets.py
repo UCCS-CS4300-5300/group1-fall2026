@@ -50,8 +50,11 @@ def clean_name(raw):
     return name or None
 
 
-def validate_payload(payload):
+def validate_payload(payload, *, require_name=True):
     """Check a whole preset. Returns the cleaned pieces, or raises PresetValidationError.
+
+    Logging a workout uses the same rules but has no name to check
+    (`require_name=False`): the name is ignored and comes back as None.
 
     Expected shape:
         {"id": 12,                      (only when updating)
@@ -65,11 +68,13 @@ def validate_payload(payload):
 
     errors = []
 
-    name = clean_name(payload.get("name"))
-    if name is None:
-        errors.append(_error("name", "Give your workout a name."))
-    elif len(name) > MAX_NAME_LENGTH:
-        errors.append(_error("name", f"The name can be at most {MAX_NAME_LENGTH} characters."))
+    name = None
+    if require_name:
+        name = clean_name(payload.get("name"))
+        if name is None:
+            errors.append(_error("name", "Give your workout a name."))
+        elif len(name) > MAX_NAME_LENGTH:
+            errors.append(_error("name", f"The name can be at most {MAX_NAME_LENGTH} characters."))
 
     unit_system = payload.get("unit_system")
     if unit_system not in UNIT_SYSTEMS:

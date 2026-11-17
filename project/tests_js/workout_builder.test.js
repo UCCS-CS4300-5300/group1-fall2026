@@ -24,7 +24,9 @@ const URLS = {
     "core:workout_preset_save": "/workouts/presets/save/",
     "core:workout_preset_detail": "/workouts/presets/0/",
     "core:workout_preset_delete": "/workouts/presets/0/delete/",
+    "core:workout_log": "/workouts/log/",
 };
+const HANDOFF_KEY = "repkinz.pendingWorkoutLog";
 
 // Fill in Django's template tags, so the test page is the real page.
 function renderTemplate() {
@@ -67,6 +69,7 @@ async function openPage(options = {}) {
     const navigations = [];
     const answers = [...(options.confirms || [])];
     const stored = options.unit ? { "repkinz.unit": options.unit } : {};
+    const session = {};
 
     const env = {
         window: w,
@@ -74,6 +77,10 @@ async function openPage(options = {}) {
         storage: { getItem: (key) => (key in stored ? stored[key] : null) },
         confirm: (text) => { confirmPrompts.push(text); return answers.length ? answers.shift() : true; },
         navigate: (url) => navigations.push(url),
+        sessionStorage: options.brokenSession ? {
+            setItem: () => { throw new Error("storage is full"); },
+        } : { setItem: (key, value) => { session[key] = value; } },
+        now: () => 1700000000000,
         fetch: async (url, init = {}) => {
             const call = {
                 url,
@@ -97,9 +104,10 @@ async function openPage(options = {}) {
 
     const doc = w.document;
     const page = {
-        w, doc, calls, confirmPrompts, navigations, builder,
+        w, doc, calls, confirmPrompts, navigations, session, builder,
         $: (id) => doc.getElementById(id),
         saves: () => calls.filter((c) => c.url === URLS["core:workout_preset_save"]),
+        logs: () => calls.filter((c) => c.url === URLS["core:workout_log"]),
         async click(node) { node.click(); await flush(); },
         section: (key) => doc.querySelector(`[data-section="${key}"]`),
         addButton: (key) => doc.querySelector(`[data-section="${key}"] .wl-add`),
@@ -539,11 +547,165 @@ test("double-clicking save sends only one request", async () => {
     assert.equal(p.saves().length, 1);
 });
 
-test("log workout is visible but switched off until it is built", async () => {
+// ---- Logging a workout ------------------------------------------------------------------------
+
+const LOGGED = { success: true, log_ids: [11, 12], count: 2, stats: { strength: 1, dexterity: 0, endurance: 1 } };
+
+async function builtWorkout(options = {}) {
+    const p = await openPage({ routes: () => reply(201, LOGGED), ...options });
+    await p.create();
+    await p.add("working_sets", "back_squat", { "wl-sets": 3, "wl-reps": 8, "wl-weight": 135 });
+    await p.add("cooldown_stretch", "butterfly_stretch", { "wl-minutes": 1, "wl-seconds": 0 });
+    return p;
+}
+
+test("log workout is switched on", async () => {
     const p = await openPage();
     await p.create();
     assert.equal(p.$("wl-log").textContent.trim(), "Log workout");
+    assert.equal(p.$("wl-log").disabled, false);
+});
+
+test("logging asks first, sends the workout with the CSRF token, and goes home", async () => {
+    const p = await builtWorkout();
+    await p.click(p.$("wl-log"));
+    assert.match(p.confirmPrompts[0], /can't be undone/);
+    assert.equal(p.logs().length, 1);
+    const call = p.logs()[0];
+    assert.equal(call.method, "POST");
+    assert.equal(call.headers["X-CSRFToken"], "test-csrf-token");
+    assert.deepEqual(call.body, {
+        unit_system: "imperial",
+        sections: {
+            warmup_stretch: [],
+            warmup_sets: [],
+            working_sets: [{ exercise_type: "back_squat", sets: 3, reps: 8, weight: 135 }],
+            cooldown_stretch: [{ exercise_type: "butterfly_stretch", duration_seconds: 60 }],
+        },
+    });
+    assert.deepEqual(p.navigations, ["/"]);
+});
+
+test("logging does not need a name, and never sends one", async () => {
+    const p = await builtWorkout();
+    assert.equal(p.$("wl-name").value, "");
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs().length, 1);
+    assert.equal("name" in p.logs()[0].body, false);
+});
+
+test("logging does not save a preset, and a loaded preset's id is not sent either", async () => {
+    const p = await openPage({
+        routes: (call) => {
+            if (call.url === URLS["core:workout_presets"]) { return reply(200, PRESET_LIST); }
+            if (call.url.startsWith("/workouts/presets/2/")) { return reply(200, PRESET_DETAIL); }
+            if (call.url === URLS["core:workout_log"]) { return reply(201, LOGGED); }
+            return undefined;
+        },
+    });
+    await p.click(p.$("wl-load"));
+    await p.click(p.doc.querySelector(".wl-preset__open"));
+    await p.click(p.$("wl-log"));
+    assert.equal(p.saves().length, 0);
+    assert.equal("id" in p.logs()[0].body, false);
+    assert.equal("name" in p.logs()[0].body, false);
+});
+
+test("logging leaves a note for the home page with the new log ids", async () => {
+    const p = await builtWorkout();
+    await p.click(p.$("wl-log"));
+    assert.deepEqual(JSON.parse(p.session[HANDOFF_KEY]), { logIds: [11, 12], at: 1700000000000 });
+});
+
+test("the workout is still logged, and we still go home, if the note can't be stored", async () => {
+    const p = await builtWorkout({ brokenSession: true });
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs().length, 1);
+    assert.deepEqual(p.navigations, ["/"]);
+});
+
+test("declining the confirmation logs nothing", async () => {
+    const p = await builtWorkout({ confirms: [false] });
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs().length, 0);
+    assert.deepEqual(p.navigations, []);
+    assert.deepEqual(p.session, {});
+    assert.equal(p.items("working_sets").length, 1, "the workout is still on screen");
+});
+
+test("an empty workout can't be logged, and nothing is asked or sent", async () => {
+    const p = await openPage();
+    await p.create();
+    await p.click(p.$("wl-log"));
+    assert.match(p.errorText(), /at least one exercise/i);
+    assert.equal(p.confirmPrompts.length, 0);
+    assert.equal(p.logs().length, 0);
+});
+
+test("with the kilogram setting, a logged workout says si", async () => {
+    const p = await builtWorkout({ unit: "kgs" });
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs()[0].body.unit_system, "si");
+});
+
+test("server problems with a log are listed, and nothing is handed home", async () => {
+    const p = await builtWorkout({
+        routes: () => reply(400, {
+            error: "validation", message: "Please fix the problems below.",
+            errors: [{ where: "item", message: "Weight is too large.", section: "working_sets", index: 0, field: "weight" }],
+        }),
+    });
+    await p.click(p.$("wl-log"));
+    const lines = [...p.doc.querySelectorAll("#wl-errors-list li")].map((li) => li.textContent);
+    assert.deepEqual(lines, ["Working sets/exercises, exercise 1: Weight is too large."]);
+    assert.deepEqual(p.navigations, []);
+    assert.deepEqual(p.session, {});
+});
+
+test("a log that fails shows a friendly message and the buttons work again", async () => {
+    const p = await builtWorkout({ routes: () => reply(500, {}) });
+    await p.click(p.$("wl-log"));
+    assert.match(p.errorText(), /couldn't be logged/);
+    assert.equal(p.$("wl-log").disabled, false);
+    assert.equal(p.$("wl-save").disabled, false);
+    assert.deepEqual(p.navigations, []);
+
+    const q = await builtWorkout({ routes: () => new Error("offline") });
+    await q.click(q.$("wl-log"));
+    assert.match(q.errorText(), /reach the server/);
+    assert.equal(q.$("wl-log").disabled, false);
+});
+
+test("a reply without log ids is treated as a failure, not a success", async () => {
+    const p = await builtWorkout({ routes: () => reply(200, { success: true }) });
+    await p.click(p.$("wl-log"));
+    assert.match(p.errorText(), /couldn't be logged/);
+    assert.deepEqual(p.navigations, []);
+    assert.deepEqual(p.session, {});
+});
+
+test("while a log is being sent both buttons are off, so a double-click logs once", async () => {
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const p = await builtWorkout({
+        routes: (call) => (call.url === URLS["core:workout_log"] ? gate.then(() => reply(201, LOGGED)) : undefined),
+    });
+    p.$("wl-log").click();
+    p.$("wl-log").click();
+    await flush();
     assert.equal(p.$("wl-log").disabled, true);
+    assert.equal(p.$("wl-save").disabled, true);
+    release();
+    await flush();
+    assert.equal(p.logs().length, 1);
+});
+
+test("logging marks the page as clean, so leaving doesn't warn", async () => {
+    const p = await builtWorkout();
+    await p.click(p.$("wl-log"));
+    const event = new p.w.Event("beforeunload", { cancelable: true });
+    p.w.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, false);
 });
 
 // ---- Loading presets ------------------------------------------------------------------------

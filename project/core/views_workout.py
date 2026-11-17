@@ -7,9 +7,10 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .models_workout import MAX_PRESETS_PER_USER, Workout
 from .units import UNIT_SYSTEMS
+from .workout_logs import log_workout, stat_totals
 from .workout_presets import (
     NameTaken, PresetNotFound, PresetValidationError, TooManyPresets,
-    catalog_payload, list_presets, save_preset, serialize_preset,
+    catalog_payload, list_presets, save_preset, serialize_preset, validate_payload,
 )
 
 # A full workout is a few kilobytes. Anything far bigger is not a workout.
@@ -99,3 +100,39 @@ def preset_delete(request, pk):
     workout = get_object_or_404(Workout, pk=pk, user=request.user)
     workout.delete()
     return JsonResponse({"deleted": True})
+
+
+@login_required
+@require_POST
+def workout_log(request):
+    """Log every exercise in the workout as just performed.
+
+    Takes the same body as saving a preset, except the name is not needed: logging
+    doesn't save anything as a preset. Returns the new log ids, which the page hands
+    to the home page so RepKin can comment on the workout.
+    """
+    if len(request.body) > MAX_BODY_BYTES:
+        return error("too_large", "That request is too large.", 413)
+    try:
+        payload = json.loads(request.body)
+    except ValueError:
+        return error("invalid_json", "The request body must be JSON.", 400)
+
+    try:
+        cleaned = validate_payload(payload, require_name=False)
+    except PresetValidationError as problem:
+        return JsonResponse(
+            {"error": "validation", "message": "Please fix the problems below.", "errors": problem.errors},
+            status=400,
+        )
+
+    logs = log_workout(request.user, cleaned["items"])
+    return JsonResponse(
+        {
+            "success": True,
+            "log_ids": [log.pk for log in logs],
+            "count": len(logs),
+            "stats": stat_totals(logs),
+        },
+        status=201,
+    )
