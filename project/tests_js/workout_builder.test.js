@@ -566,16 +566,29 @@ test("log workout is switched on", async () => {
     assert.equal(p.$("wl-log").disabled, false);
 });
 
-test("logging asks first, sends the workout with the CSRF token, and goes home", async () => {
+const LOG_CONFIRMATION =
+    "Log this workout now? It counts toward RepKin's stats and can't be undone. " +
+    "Workouts not saved as presets will be automatically saved upon workout submission.";
+
+const LOGGED_AND_SAVED = { ...LOGGED, preset: { id: 3, name: "Workout Nov 16", created: true } };
+
+test("logging asks first with the agreed message", async () => {
     const p = await builtWorkout();
     await p.click(p.$("wl-log"));
-    assert.match(p.confirmPrompts[0], /can't be undone/);
+    assert.deepEqual(p.confirmPrompts, [LOG_CONFIRMATION]);
+});
+
+test("a new workout is sent with the CSRF token, flagged to be saved, then we go home", async () => {
+    const p = await builtWorkout({ routes: () => reply(201, LOGGED_AND_SAVED) });
+    await p.click(p.$("wl-log"));
     assert.equal(p.logs().length, 1);
     const call = p.logs()[0];
     assert.equal(call.method, "POST");
     assert.equal(call.headers["X-CSRFToken"], "test-csrf-token");
     assert.deepEqual(call.body, {
+        name: "",
         unit_system: "imperial",
+        save_preset: true,
         sections: {
             warmup_stretch: [],
             warmup_sets: [],
@@ -586,12 +599,28 @@ test("logging asks first, sends the workout with the CSRF token, and goes home",
     assert.deepEqual(p.navigations, ["/"]);
 });
 
-test("logging does not need a name, and never sends one", async () => {
+test("logging works without a name: the blank name is left for the server to fill in", async () => {
     const p = await builtWorkout();
     assert.equal(p.$("wl-name").value, "");
     await p.click(p.$("wl-log"));
     assert.equal(p.logs().length, 1);
-    assert.equal("name" in p.logs()[0].body, false);
+    assert.equal(p.logs()[0].body.name, "");
+    assert.equal(p.logs()[0].body.save_preset, true);
+    assert.equal("id" in p.logs()[0].body, false);
+    assert.deepEqual(p.navigations, ["/"]);
+});
+
+test("a name the person typed is sent, tidied", async () => {
+    const p = await builtWorkout();
+    p.$("wl-name").value = "  Leg day  ";
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs()[0].body.name, "Leg day");
+});
+
+test("logging does not also call the separate save endpoint", async () => {
+    const p = await builtWorkout();
+    await p.click(p.$("wl-log"));
+    assert.equal(p.saves().length, 0);
 });
 
 test("logging does not save a preset, and a loaded preset's id is not sent either", async () => {
@@ -609,6 +638,54 @@ test("logging does not save a preset, and a loaded preset's id is not sent eithe
     assert.equal(p.saves().length, 0);
     assert.equal("id" in p.logs()[0].body, false);
     assert.equal("name" in p.logs()[0].body, false);
+    assert.equal("save_preset" in p.logs()[0].body, false, "already saved, so nothing to save");
+});
+
+function presetRoutesFor(logReply) {
+    return (call) => {
+        if (call.url === URLS["core:workout_presets"]) { return reply(200, PRESET_LIST); }
+        if (call.url.startsWith("/workouts/presets/2/")) { return reply(200, PRESET_DETAIL); }
+        if (call.url === URLS["core:workout_log"]) { return logReply(call); }
+        return undefined;
+    };
+}
+
+async function loadedPreset(logReply = () => reply(201, LOGGED), options = {}) {
+    const p = await openPage({ routes: presetRoutesFor(logReply), ...options });
+    await p.click(p.$("wl-load"));
+    await p.click(p.doc.querySelector(".wl-preset__open"));
+    return p;
+}
+
+test("a loaded preset that was edited is saved again as part of logging", async () => {
+    const p = await loadedPreset(() => reply(201, { ...LOGGED, preset: { id: 2, name: "Leg day", created: false } }));
+    await p.add("warmup_sets", "push_ups", { "wl-sets": 1, "wl-reps": 10 });
+    await p.click(p.$("wl-log"));
+    const body = p.logs()[0].body;
+    assert.equal(body.save_preset, true);
+    assert.equal(body.id, 2, "updates that preset instead of making a copy");
+    assert.equal(body.name, "Leg day");
+    assert.equal(body.sections.warmup_sets.length, 1);
+    assert.deepEqual(p.navigations, ["/"]);
+});
+
+test("renaming a loaded preset counts as a change too", async () => {
+    const p = await loadedPreset();
+    p.$("wl-name").value = "Leg day v2";
+    p.$("wl-name").dispatchEvent(new p.w.Event("input", { bubbles: true }));
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs()[0].body.save_preset, true);
+    assert.equal(p.logs()[0].body.name, "Leg day v2");
+    assert.equal(p.logs()[0].body.id, 2);
+});
+
+test("deleting the preset you have open means logging saves a new one, not an update", async () => {
+    const p = await loadedPreset((call) => reply(201, LOGGED), { confirms: [true, true] });
+    await p.click(p.$("wl-load"));
+    await p.click(p.doc.querySelector(".wl-preset__delete"));
+    await p.click(p.$("wl-log"));
+    assert.equal("id" in p.logs()[0].body, false);
+    assert.equal(p.logs()[0].body.save_preset, true);
 });
 
 test("logging leaves a note for the home page with the new log ids", async () => {
@@ -682,6 +759,71 @@ test("a reply without log ids is treated as a failure, not a success", async () 
     assert.match(p.errorText(), /couldn't be logged/);
     assert.deepEqual(p.navigations, []);
     assert.deepEqual(p.session, {});
+});
+
+test("if the name is taken, logging asks to replace it and then logs with that preset's id", async () => {
+    let attempt = 0;
+    const p = await builtWorkout({
+        confirms: [true, true],
+        routes: (call) => {
+            if (call.url !== URLS["core:workout_log"]) { return undefined; }
+            attempt += 1;
+            return attempt === 1
+                ? reply(409, { error: "name_taken", message: "taken", existing_id: 42 })
+                : reply(201, { ...LOGGED, preset: { id: 42, name: "Leg day", created: false } });
+        },
+    });
+    p.$("wl-name").value = "Leg day";
+    await p.click(p.$("wl-log"));
+    assert.equal(p.confirmPrompts[0], LOG_CONFIRMATION);
+    assert.match(p.confirmPrompts[1], /already have a workout called "Leg day"\. Replace it\?/);
+    assert.equal(p.logs().length, 2);
+    assert.equal("id" in p.logs()[0].body, false);
+    assert.equal(p.logs()[1].body.id, 42);
+    assert.equal(p.logs()[1].body.save_preset, true);
+    assert.deepEqual(p.navigations, ["/"]);
+    assert.deepEqual(JSON.parse(p.session[HANDOFF_KEY]).logIds, [11, 12]);
+});
+
+test("declining the replace means nothing is logged, and the workout stays on screen", async () => {
+    const p = await builtWorkout({
+        confirms: [true, false],
+        routes: () => reply(409, { error: "name_taken", message: "taken", existing_id: 42 }),
+    });
+    p.$("wl-name").value = "Leg day";
+    await p.click(p.$("wl-log"));
+    assert.equal(p.logs().length, 1);
+    assert.deepEqual(p.navigations, []);
+    assert.deepEqual(p.session, {});
+    assert.equal(p.items("working_sets").length, 1);
+    assert.equal(p.$("wl-log").disabled, false);
+    assert.equal(p.$("wl-save").disabled, false);
+});
+
+test("at the preset limit, logging explains why nothing was logged", async () => {
+    const p = await builtWorkout({
+        routes: () => reply(409, {
+            error: "too_many_presets",
+            message: "You can keep up to 50 workouts. Delete one to save another.",
+        }),
+    });
+    await p.click(p.$("wl-log"));
+    assert.match(p.errorText(), /keep up to 50 workouts/);
+    assert.match(p.errorText(), /wasn't logged/);
+    assert.deepEqual(p.navigations, []);
+    assert.deepEqual(p.session, {});
+});
+
+test("a name that is too long is reported by name", async () => {
+    const p = await builtWorkout({
+        routes: () => reply(400, {
+            error: "validation", message: "Please fix the problems below.",
+            errors: [{ where: "name", message: "The name can be at most 40 characters." }],
+        }),
+    });
+    await p.click(p.$("wl-log"));
+    assert.match(p.doc.querySelector("#wl-errors-list li").textContent, /^Name: /);
+    assert.deepEqual(p.navigations, []);
 });
 
 test("while a log is being sent both buttons are off, so a double-click logs once", async () => {

@@ -560,6 +560,24 @@
             env.navigate(config.homeUrl);
         }
 
+        // Sends `payload`. If the name is already taken, asks whether to replace that
+        // workout and, if so, sends again aimed at it. Returns the server's answer, or
+        // null if the person said no.
+        async function postReplacingIfAsked(url, payload) {
+            let result = await post(url, payload);
+            if (result.status === 409 && result.data.error === "name_taken") {
+                const replace = env.confirm(
+                    `You already have a workout called "${payload.name}". Replace it?`
+                );
+                if (!replace) {
+                    return null;
+                }
+                payload.id = result.data.existing_id;
+                result = await post(url, payload);
+            }
+            return result;
+        }
+
         async function onSave() {
             clearMessages();
             if (el.name.value.trim() === "") {
@@ -574,18 +592,9 @@
 
             setBusy(true);
             try {
-                const payload = buildPayload();
-                let result = await post(config.saveUrl, payload);
-
-                if (result.status === 409 && result.data.error === "name_taken") {
-                    const replace = env.confirm(
-                        `You already have a workout called "${payload.name}". Replace it?`
-                    );
-                    if (!replace) {
-                        return;
-                    }
-                    payload.id = result.data.existing_id;
-                    result = await post(config.saveUrl, payload);
+                const result = await postReplacingIfAsked(config.saveUrl, buildPayload());
+                if (result === null) {
+                    return;
                 }
 
                 if (result.ok) {
@@ -604,6 +613,12 @@
         }
 
         // ---- Logging -----------------------------------------------------------------
+        // A workout opened from a preset and not touched since is already saved.
+        // Anything else (a new workout, or a loaded one that was edited) is not.
+        function isSavedAndUnchanged() {
+            return state.id !== null && !state.dirty;
+        }
+
         function rememberLogsForHome(logIds) {
             try {
                 if (env.sessionStorage) {
@@ -624,7 +639,7 @@
             }
             const sure = env.confirm(
                 "Log this workout now? It counts toward RepKin's stats and can't be undone. " +
-                "It isn't saved as a preset, so use Save preset for that."
+                "Workouts not saved as presets will be automatically saved upon workout submission."
             );
             if (!sure) {
                 return;
@@ -632,11 +647,20 @@
 
             setBusy(true);
             try {
-                // A log needs no name, and isn't an update of any preset.
                 const payload = buildPayload();
-                delete payload.name;
-                delete payload.id;
-                const result = await post(config.logUrl, payload);
+                if (isSavedAndUnchanged()) {
+                    // Nothing new to save: just log it.
+                    delete payload.name;
+                    delete payload.id;
+                } else {
+                    // Not saved yet (or changed since it was loaded): the server saves it
+                    // as part of logging, giving it a dated name if it has none.
+                    payload.save_preset = true;
+                }
+                const result = await postReplacingIfAsked(config.logUrl, payload);
+                if (result === null) {
+                    return;
+                }
 
                 if (result.ok && Array.isArray(result.data.log_ids)) {
                     rememberLogsForHome(result.data.log_ids);
@@ -644,6 +668,8 @@
                 } else if (result.status === 400 && result.data.errors) {
                     showErrors(result.data.message || "Please fix the problems below.",
                         serverErrorLines(result.data.errors));
+                } else if (result.data.error === "too_many_presets") {
+                    showErrors(`${result.data.message} Your workout wasn't logged.`);
                 } else {
                     showErrors(result.data.message || "Your workout couldn't be logged. Please try again.");
                 }

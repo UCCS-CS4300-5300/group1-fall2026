@@ -50,6 +50,25 @@ def clean_name(raw):
     return name or None
 
 
+def default_preset_name(user, today):
+    """A name for a workout that is saved automatically: "Workout Nov 16", then
+    "Workout Nov 16 (2)" if that's taken. Names are compared ignoring capitals."""
+    base = f"Workout {today:%b} {today.day}"
+    candidate, number = base, 1
+    while _find_clash(user, candidate):
+        number += 1
+        candidate = f"{base} ({number})"
+    return candidate
+
+
+def with_default_name(user, payload, today):
+    """`payload`, with a name filled in if it has none. Used when a logged workout is
+    saved as a preset for the person without them having named it."""
+    if isinstance(payload, dict) and clean_name(payload.get("name")) is None:
+        return {**payload, "name": default_preset_name(user, today)}
+    return payload
+
+
 def validate_payload(payload, *, require_name=True):
     """Check a whole preset. Returns the cleaned pieces, or raises PresetValidationError.
 

@@ -1,6 +1,8 @@
 """Logging a whole workout (Phase 4): POST /workouts/log/ and core/workout_logs.py."""
 
 import json
+import types
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
@@ -9,13 +11,15 @@ from django.contrib.auth.models import User
 from django.template.loader import get_template
 from django.urls import reverse
 
-from core import workout_logs
+from core import views_workout, workout_logs, workout_presets
 from core.exercises import STAT_NAMES, calculate_stats
 from core.models_exercise import ExerciseLog
 from core.models_repkin import Repkin
-from core.models_workout import Workout
+from core.models_workout import MAX_PRESETS_PER_USER, Workout
 from core.repkin_voice import gather_facts
-from core.workout_presets import PresetValidationError, validate_payload
+from core.workout_presets import (
+    PresetValidationError, save_preset, serialize_preset, validate_payload,
+)
 
 LOG = "core:workout_log"
 STATIC = Path(__file__).resolve().parents[2] / "static"
@@ -103,9 +107,10 @@ def test_a_name_is_not_needed_and_is_ignored(logged_in_client):
     assert too_long.status_code == 201
 
 
-def test_logging_does_not_save_a_preset(logged_in_client):
-    post_log(logged_in_client, workout(name="Leg Day"))
+def test_without_the_save_flag_logging_saves_no_preset(logged_in_client):
+    data = post_log(logged_in_client, workout(name="Leg Day")).json()
     assert Workout.objects.count() == 0
+    assert data["preset"] is None
 
 
 def test_the_weight_is_recorded_in_kilograms(logged_in_client):
@@ -139,6 +144,237 @@ def test_the_sets_reps_and_time_are_recorded(logged_in_client):
     assert stretch.duration_seconds == 45
     assert (squat.sets, squat.reps) == (3, 8)
     assert ride.sets is None and ride.reps is None
+
+
+# ---- Saving the workout as a preset while logging it ------------------------------------------
+
+
+TODAY = date(2026, 11, 16)
+
+
+@pytest.fixture
+def today_is_nov_16(monkeypatch):
+    monkeypatch.setattr(views_workout, "timezone", types.SimpleNamespace(localdate=lambda: TODAY))
+
+
+def saved(user, name="Leg Day", **changes):
+    """A preset the user already has."""
+    preset, _ = save_preset(user, {**workout(), "name": name, **changes})
+    return preset
+
+
+def test_the_save_flag_saves_the_workout_along_with_the_logs(logged_in_client, user):
+    response = post_log(logged_in_client, workout(name="Leg Day", save_preset=True))
+    assert response.status_code == 201
+    data = response.json()
+    preset = Workout.objects.get(user=user)
+    assert data["preset"] == {"id": preset.pk, "name": "Leg Day", "created": True}
+    assert ExerciseLog.objects.filter(user=user).count() == 3
+    assert [row.exercise_type for row in preset.exercises.order_by("id")] == [
+        "hamstring_stretch", "back_squat", "cycling",
+    ]
+
+
+def test_the_saved_preset_matches_what_was_logged(logged_in_client, user):
+    post_log(logged_in_client, workout(name="Leg Day", save_preset=True))
+    sections = serialize_preset(Workout.objects.get(user=user), "imperial")["sections"]
+    squat = sections["working_sets"][0]
+    assert (squat["sets"], squat["reps"]) == (3, 8)
+    assert squat["weight"] == pytest.approx(135, abs=0.1)
+    assert sections["working_sets"][1]["distance"] == pytest.approx(5, abs=0.01)
+    assert sections["warmup_stretch"][0]["duration_seconds"] == 45
+
+
+@pytest.mark.parametrize("flag", [False, None, "true", "yes", 1, 0, [], {}])
+def test_only_a_real_true_saves_a_preset(logged_in_client, flag):
+    response = post_log(logged_in_client, workout(name="Leg Day", save_preset=flag))
+    assert response.status_code == 201
+    assert Workout.objects.count() == 0
+
+
+def test_a_blank_name_gets_a_dated_one(logged_in_client, user, today_is_nov_16):
+    data = post_log(logged_in_client, workout(save_preset=True)).json()
+    assert data["preset"]["name"] == "Workout Nov 16"
+    assert Workout.objects.get(user=user).name == "Workout Nov 16"
+
+
+@pytest.mark.parametrize("name", ["", "   ", None, 42])
+def test_a_missing_or_blank_name_is_treated_the_same(logged_in_client, today_is_nov_16, name):
+    data = post_log(logged_in_client, workout(name=name, save_preset=True)).json()
+    assert data["preset"]["name"] == "Workout Nov 16"
+
+
+def test_unnamed_workouts_on_the_same_day_get_numbered_names(logged_in_client, user, today_is_nov_16):
+    names = [
+        post_log(logged_in_client, workout(save_preset=True)).json()["preset"]["name"]
+        for _ in range(3)
+    ]
+    assert names == ["Workout Nov 16", "Workout Nov 16 (2)", "Workout Nov 16 (3)"]
+    assert Workout.objects.filter(user=user).count() == 3
+
+
+def test_a_typed_name_is_used_and_tidied(logged_in_client):
+    data = post_log(logged_in_client, workout(name="  Leg    Day ", save_preset=True)).json()
+    assert data["preset"]["name"] == "Leg Day"
+
+
+def test_a_loaded_preset_that_was_changed_is_updated_not_copied(logged_in_client, user):
+    original = saved(user)
+    payload = workout(id=original.pk, name="Leg Day v2", save_preset=True)
+    payload["sections"]["working_sets"] = [{"exercise_type": "push_ups", "sets": 2, "reps": 15}]
+    data = post_log(logged_in_client, payload).json()
+    assert data["preset"] == {"id": original.pk, "name": "Leg Day v2", "created": False}
+    assert Workout.objects.filter(user=user).count() == 1
+    original.refresh_from_db()
+    assert original.name == "Leg Day v2"
+    assert sorted(row.exercise_type for row in original.exercises.all()) == ["hamstring_stretch", "push_ups"]
+    assert ExerciseLog.objects.filter(user=user).count() == 2, "what was logged is what was on screen"
+
+
+def test_another_users_preset_can_not_be_overwritten(logged_in_client, user, other_user):
+    theirs = saved(other_user, name="Their Plan")
+    response = post_log(logged_in_client, workout(id=theirs.pk, name="Mine", save_preset=True))
+    assert response.status_code == 404
+    assert response.json()["error"] == "not_found"
+    theirs.refresh_from_db()
+    assert theirs.name == "Their Plan"
+    assert ExerciseLog.objects.count() == 0
+
+
+def test_a_taken_name_changes_nothing_so_the_page_can_ask_to_replace_it(logged_in_client, user):
+    existing = saved(user, name="Leg Day", sections={
+        "working_sets": [{"exercise_type": "push_ups", "sets": 1, "reps": 1}],
+    })
+    response = post_log(logged_in_client, workout(name="leg day", save_preset=True))
+    assert response.status_code == 409
+    body = response.json()
+    assert (body["error"], body["existing_id"]) == ("name_taken", existing.pk)
+    assert ExerciseLog.objects.count() == 0
+    assert Repkin.objects.filter(owner=user).count() == 0
+    assert Workout.objects.filter(user=user).count() == 1
+    assert [row.exercise_type for row in existing.exercises.all()] == ["push_ups"], "untouched"
+
+
+def test_replacing_a_taken_name_saves_over_it_and_logs(logged_in_client, user):
+    existing = saved(user, name="Leg Day", sections={
+        "working_sets": [{"exercise_type": "push_ups", "sets": 1, "reps": 1}],
+    })
+    data = post_log(logged_in_client, workout(name="Leg Day", id=existing.pk, save_preset=True)).json()
+    assert data["preset"] == {"id": existing.pk, "name": "Leg Day", "created": False}
+    assert Workout.objects.filter(user=user).count() == 1
+    assert existing.exercises.count() == 3
+    assert ExerciseLog.objects.filter(user=user).count() == 3
+
+
+def test_at_the_preset_limit_a_new_preset_is_refused_and_nothing_is_logged(logged_in_client, user):
+    Workout.objects.bulk_create(
+        [Workout(user=user, name=f"Preset {number}") for number in range(MAX_PRESETS_PER_USER)]
+    )
+    response = post_log(logged_in_client, workout(name="One too many", save_preset=True))
+    assert response.status_code == 409
+    assert response.json()["error"] == "too_many_presets"
+    assert ExerciseLog.objects.count() == 0
+    assert Repkin.objects.filter(owner=user).count() == 0
+    assert Workout.objects.filter(user=user).count() == MAX_PRESETS_PER_USER
+
+
+def test_at_the_limit_a_workout_that_is_not_being_saved_can_still_be_logged(logged_in_client, user):
+    Workout.objects.bulk_create(
+        [Workout(user=user, name=f"Preset {number}") for number in range(MAX_PRESETS_PER_USER)]
+    )
+    assert post_log(logged_in_client, workout()).status_code == 201
+
+
+def test_at_the_limit_updating_an_existing_preset_is_fine(logged_in_client, user):
+    first = saved(user, name="First")
+    Workout.objects.bulk_create(
+        [Workout(user=user, name=f"Preset {number}") for number in range(MAX_PRESETS_PER_USER - 1)]
+    )
+    response = post_log(logged_in_client, workout(id=first.pk, name="First", save_preset=True))
+    assert response.status_code == 201
+    assert Workout.objects.filter(user=user).count() == MAX_PRESETS_PER_USER
+
+
+def test_a_name_that_is_too_long_is_refused_and_nothing_happens(logged_in_client, user):
+    response = post_log(logged_in_client, workout(name="x" * 41, save_preset=True))
+    assert response.status_code == 400
+    assert [e["where"] for e in response.json()["errors"]] == ["name"]
+    assert ExerciseLog.objects.count() == 0
+    assert Workout.objects.count() == 0
+
+
+def test_a_bad_exercise_means_nothing_is_saved_or_logged(logged_in_client, user):
+    payload = workout(name="Leg Day", save_preset=True)
+    del payload["sections"]["working_sets"][0]["reps"]
+    assert post_log(logged_in_client, payload).status_code == 400
+    assert ExerciseLog.objects.count() == 0
+    assert Workout.objects.count() == 0
+
+
+def test_if_logging_fails_the_preset_is_not_saved_either(logged_in_client, user, monkeypatch):
+    def broken(*args, **kwargs):
+        raise RuntimeError("the database went away")
+
+    monkeypatch.setattr(views_workout, "log_workout", broken)
+    with pytest.raises(RuntimeError):
+        post_log(logged_in_client, workout(name="Leg Day", save_preset=True))
+    assert Workout.objects.count() == 0
+    assert ExerciseLog.objects.count() == 0
+
+
+def test_kilogram_users_get_a_preset_that_loads_back_in_kilograms(logged_in_client, user):
+    payload = workout(unit_system="si", name="Metric", save_preset=True)
+    payload["sections"]["working_sets"][0]["weight"] = 60
+    post_log(logged_in_client, payload)
+    sections = serialize_preset(Workout.objects.get(user=user), "si")["sections"]
+    assert sections["working_sets"][0]["weight"] == pytest.approx(60, abs=0.1)
+
+
+def test_the_save_endpoint_still_gives_the_same_replies(logged_in_client, user):
+    """Saving and logging share their error replies. Spot-check that Save still has them."""
+    save_url = reverse("core:workout_preset_save")
+    body = json.dumps({**workout(), "name": "Leg Day"})
+    assert logged_in_client.post(save_url, body, content_type="application/json").status_code == 201
+    clash = logged_in_client.post(save_url, body, content_type="application/json")
+    assert (clash.status_code, clash.json()["error"]) == (409, "name_taken")
+    missing = logged_in_client.post(
+        save_url, json.dumps({**workout(), "name": "X", "id": 999999}), content_type="application/json"
+    )
+    assert (missing.status_code, missing.json()["error"]) == (404, "not_found")
+
+
+# ---- The automatic name -----------------------------------------------------------------------
+
+
+def test_default_name_is_the_date_without_a_leading_zero(user):
+    assert workout_presets.default_preset_name(user, date(2026, 3, 5)) == "Workout Mar 5"
+    assert workout_presets.default_preset_name(user, date(2026, 11, 16)) == "Workout Nov 16"
+
+
+def test_default_name_skips_names_already_taken_ignoring_capitals(user):
+    saved(user, name="workout NOV 16")
+    assert workout_presets.default_preset_name(user, TODAY) == "Workout Nov 16 (2)"
+    saved(user, name="Workout Nov 16 (2)")
+    assert workout_presets.default_preset_name(user, TODAY) == "Workout Nov 16 (3)"
+
+
+def test_default_name_only_looks_at_this_users_presets(user, other_user):
+    saved(other_user, name="Workout Nov 16")
+    assert workout_presets.default_preset_name(user, TODAY) == "Workout Nov 16"
+
+
+def test_with_default_name_fills_in_only_a_missing_name(user):
+    fill = workout_presets.with_default_name
+    assert fill(user, {"name": "Leg Day"}, TODAY) == {"name": "Leg Day"}
+    for blank in ({}, {"name": ""}, {"name": "   "}, {"name": None}, {"name": 7}):
+        assert fill(user, blank, TODAY)["name"] == "Workout Nov 16"
+
+
+def test_with_default_name_leaves_the_original_alone_and_ignores_non_objects(user):
+    original = {"unit_system": "imperial"}
+    result = workout_presets.with_default_name(user, original, TODAY)
+    assert "name" not in original and result["name"] == "Workout Nov 16"
+    assert workout_presets.with_default_name(user, [1, 2], TODAY) == [1, 2]
 
 
 # ---- Points ----------------------------------------------------------------------------
