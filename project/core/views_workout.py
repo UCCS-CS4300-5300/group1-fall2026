@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
 
 from .models_workout import MAX_PRESETS_PER_USER, Workout
@@ -18,6 +18,13 @@ MAX_BODY_BYTES = 50_000
 
 def error(code, message, status, **extra):
     return JsonResponse({"error": code, "message": message, **extra}, status=status)
+
+
+@login_required
+@require_GET
+def workout_logging(request):
+    """The workout logging page: build a workout, save it as a preset, or load one."""
+    return render(request, "core/workout_logging.html")
 
 
 @login_required
