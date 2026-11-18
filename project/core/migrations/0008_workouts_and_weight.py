@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0006_repkin_dexterity_repkin_endurance_and_more'),
+        ('core', '0007_alter_exerciselog_exercise_type'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
