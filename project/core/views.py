@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.templatetags.static import static
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from firebase_admin import auth as firebase_auth
 
@@ -205,5 +206,7 @@ def locker_room(request):
         "arm_level": arm_level,
         "arm_gif": ARM_VERSIONS[arm_level],
         "next_arms": next_arm_level(arm_level),
+        # Every arm gif address, so the page can switch arms without reloading.
+        "arm_gif_urls": [static(path) for path in ARM_VERSIONS],
     }
     return render(request, "core/locker_room.html", context)
