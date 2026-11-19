@@ -74,7 +74,9 @@ async function openPage(options = {}) {
     const env = {
         window: w,
         document: w.document,
-        storage: { getItem: (key) => (key in stored ? stored[key] : null) },
+        storage: options.brokenStorage
+            ? { getItem: () => { throw new Error("storage is blocked"); } }
+            : { getItem: (key) => (key in stored ? stored[key] : null) },
         confirm: (text) => { confirmPrompts.push(text); return answers.length ? answers.shift() : true; },
         navigate: (url) => navigations.push(url),
         sessionStorage: options.brokenSession ? {
@@ -177,7 +179,7 @@ test("the picker groups the section's exercises under headings", async () => {
 });
 
 test("a weighted lift asks for sets, reps and an optional weight in pounds", async () => {
-    const p = await openPage({ unit: "lbs" });
+    const p = await openPage({ unit: "imp" });
     await p.create();
     await p.click(p.addButton("working_sets"));
     await p.choose("back_squat");
@@ -364,7 +366,7 @@ test("remove deletes just that exercise; adding shows no Remove button", async (
 // ---- Units ------------------------------------------------------------------------------
 
 test("with the kilogram setting, labels say kg and km, and saving sends unit_system si", async () => {
-    const p = await openPage({ unit: "kgs", routes: () => reply(201, { id: 1, name: "X", created: true }) });
+    const p = await openPage({ unit: "si", routes: () => reply(201, { id: 1, name: "X", created: true }) });
     await p.create();
     assert.match(p.$("wl-units").textContent, /kg/);
     assert.match(p.$("wl-units").textContent, /km/);
@@ -379,6 +381,38 @@ test("pounds are the default when nothing is stored", async () => {
     const p = await openPage();
     await p.create();
     assert.match(p.$("wl-units").textContent, /lb/);
+});
+
+// What the main menu saved decides the units. It saves "imp" or "si" now, and "lbs" or
+// "kgs" in older versions (kept in the browser until the person next clicks a button).
+for (const [saved, system, labels] of [
+    ["imp", "imperial", [/lb/, /mi/]],
+    ["si", "si", [/kg/, /km/]],
+    ["lbs", "imperial", [/lb/, /mi/]],      // saved by an older menu
+    ["kgs", "si", [/kg/, /km/]],            // saved by an older menu
+]) {
+    test(`a saved unit of "${saved}" means ${system}`, async () => {
+        const p = await builtWorkout({ unit: saved });
+        labels.forEach((label) => assert.match(p.$("wl-units").textContent, label));
+        await p.click(p.$("wl-log"));
+        assert.equal(p.logs()[0].body.unit_system, system);
+    });
+}
+
+for (const odd of ["", "stone", "SI", "KGS", "metric", "met"]) {
+    test(`an unexpected saved unit (${JSON.stringify(odd)}) means imperial, like the menu's default`, async () => {
+        const p = await openPage({ unit: odd });
+        await p.create();
+        assert.match(p.$("wl-units").textContent, /lb/);
+    });
+}
+
+test("if the browser blocks storage, the units are imperial and the page still works", async () => {
+    const p = await openPage({ brokenStorage: true });
+    await p.create();
+    assert.match(p.$("wl-units").textContent, /lb/);
+    await p.add("working_sets", "push_ups", { "wl-sets": 3, "wl-reps": 10 });
+    assert.equal(p.items("working_sets").length, 1);
 });
 
 // ---- Saving ------------------------------------------------------------------------------
@@ -720,7 +754,7 @@ test("an empty workout can't be logged, and nothing is asked or sent", async () 
 });
 
 test("with the kilogram setting, a logged workout says si", async () => {
-    const p = await builtWorkout({ unit: "kgs" });
+    const p = await builtWorkout({ unit: "si" });
     await p.click(p.$("wl-log"));
     assert.equal(p.logs()[0].body.unit_system, "si");
 });
@@ -915,7 +949,7 @@ test("a preset name that looks like HTML is shown as plain text", async () => {
 });
 
 test("opening a preset fills in the name and every exercise, in the user's units", async () => {
-    const p = await openPage({ unit: "kgs", routes: presetRoutes() });
+    const p = await openPage({ unit: "si", routes: presetRoutes() });
     await p.click(p.$("wl-load"));
     await p.click(p.doc.querySelector(".wl-preset__open"));
     const detailCall = p.calls.find((c) => c.url.startsWith("/workouts/presets/2/"));

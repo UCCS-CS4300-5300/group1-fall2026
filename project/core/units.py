@@ -22,8 +22,9 @@ KM_PER_MILE = Decimal("1.609344")
 WEIGHT_UNIT = {IMPERIAL: "lb", SI: "kg"}
 DISTANCE_UNIT = {IMPERIAL: "mi", SI: "km"}
 
-# The two values main_menu.js can save in the browser.
-BROWSER_CHOICES = {"lbs": IMPERIAL, "kgs": SI}
+# The values main_menu.js saves in the browser: "imp" or "si". Older versions of the menu
+# saved "lbs" or "kgs", and a browser keeps that until its owner next clicks a unit button.
+BROWSER_CHOICES = {"imp": IMPERIAL, "si": SI, "lbs": IMPERIAL, "kgs": SI}
 
 
 def check_system(system):

@@ -21,8 +21,12 @@
     // comment on them (see static/js/workout_logged.js, which reads this same key).
     const HANDOFF_KEY = "repkinz.pendingWorkoutLog";
 
-    // Mirrors core/units.py. The main menu saves "lbs" or "kgs" under this key.
+    // The main menu (main_menu.js) saves "imp" or "si" under this key. Older versions
+    // saved "lbs" or "kgs", and a browser keeps that until its owner next clicks a unit
+    // button, so "kgs" still has to mean metric here. Anything else means imperial.
+    // Keep METRIC_CHOICES in step with BROWSER_CHOICES in core/units.py.
     const UNIT_KEY = "repkinz.unit";
+    const METRIC_CHOICES = ["si", "kgs"];
     const UNIT_LABELS = {
         imperial: { weight: "lb", distance: "mi" },
         si: { weight: "kg", distance: "km" },
@@ -79,7 +83,7 @@
             } catch (e) {
                 choice = null;
             }
-            return choice === "kgs" ? "si" : "imperial";
+            return METRIC_CHOICES.includes(choice) ? "si" : "imperial";
         }
 
         function sectionList() {
