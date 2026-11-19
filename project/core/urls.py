@@ -26,4 +26,7 @@ urlpatterns = [
     path("workouts/presets/save/", views_workout.preset_save, name="workout_preset_save"),
     path("workouts/presets/<int:pk>/", views_workout.preset_detail, name="workout_preset_detail"),
     path("workouts/presets/<int:pk>/delete/", views_workout.preset_delete, name="workout_preset_delete"),
+    path("profile/", views.profile_data, name="profile_data"),
+    path("user/name/", views.update_user_name, name="update_user_name"),
+    path("repkin/name/", views.update_repkin_name, name="update_repkin_name"),
 ]

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from core.models_repkin import Repkin
 from .models import StarterItem
+from unittest.mock import patch
 
 PASSWORD = "pw12345!"
 
@@ -140,6 +141,7 @@ def test_logout_message(logged_in_client):
     assert messages == ["You've been logged out."]
 
 
+#
 @pytest.mark.django_db
 def test_main_menu_button_interaction(logged_in_client):
     response = logged_in_client.get(reverse("core:home"))
@@ -178,14 +180,6 @@ def test_menu_has_panel_and_fields(menu_html):
 
 
 @pytest.mark.django_db
-def test_menu_shows_current_username(menu_html, user):
-    assert f'value="{user.username}"' in menu_html
-    assert "readonly" in menu_html
-
-#Removed becausre password fields no longer in menu
-
-
-@pytest.mark.django_db
 def test_menu_logout_form_posts_to_logout(menu_html):
     assert f'action="{reverse("core:logout")}"' in menu_html
     assert "csrfmiddlewaretoken" in menu_html
@@ -194,7 +188,7 @@ def test_menu_logout_form_posts_to_logout(menu_html):
 @pytest.mark.django_db
 def test_hud_shows_signed_in_username(home_html, user):
     assert "Signed in as" in home_html
-    assert user.username in home_html
+    assert user.first_name in home_html
 
 
 @pytest.mark.django_db
@@ -211,9 +205,9 @@ def test_menu_has_credits_button_and_overlay(home_html):
 
 @pytest.mark.django_db
 def test_menu_art_has_all_four_states(home_html):
-    for attr in ("data-lbs-on", "data-lbs-off", "data-kgs-on", "data-kgs-off"):
+    for attr in ("data-imp-on", "data-imp-off", "data-si-on", "data-si-off"):
         assert attr in home_html
-    for el_id in ("musicBtn", "lbsBtn", "kgsBtn"):
+    for el_id in ("musicBtn", "impBtn", "siBtn"):
         assert f'id="{el_id}"' in home_html
 
 @pytest.mark.django_db

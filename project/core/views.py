@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.templatetags.static import static
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from firebase_admin import auth as firebase_auth
 
@@ -205,5 +206,78 @@ def locker_room(request):
         "arm_level": arm_level,
         "arm_gif": ARM_VERSIONS[arm_level],
         "next_arms": next_arm_level(arm_level),
+        # Every arm gif address, so the page can switch arms without reloading.
+        "arm_gif_urls": [static(path) for path in ARM_VERSIONS],
     }
     return render(request, "core/locker_room.html", context)
+
+
+#Information to be pulled and displayed in the main menu on both pages(Repkin Name and Username)#
+@login_required
+def _clean_name(request):
+    name = request.POST.get("name", "").strip()
+    return name if 1 <= len(name) <= 30 else None
+
+@login_required
+@require_POST
+def update_repkin_name(request):
+    name = _clean_name(request)
+    if name is None:
+        return JsonResponse({"error": "Enter 1-30 characters."}, status=400)
+    repkin = get_repkin(request.user)
+    repkin.name = name
+    repkin.save(update_fields=["name"])    
+    return JsonResponse({"name": name})
+
+
+def _firebase_uid(request):
+    username = request.user.get_username()
+    prefix = "firebase_"
+    if username.startswith(prefix) and username.removeprefix(prefix):
+        return username.removeprefix(prefix)
+    return None
+
+@login_required
+@require_POST
+def update_user_name(request):
+    name = _clean_name(request)
+    if name is None:
+        return JsonResponse({"error": "Enter 1-30 characters."}, status=400)
+    request.user.first_name = name
+    request.user.save(update_fields=["first_name"])
+    return JsonResponse({"name": name})
+
+PROFILE_LIMITS = {"height_cm": (50, 250), "weight_kg": (10, 650)}
+#PII Handling
+@login_required
+@require_http_methods(["GET", "POST"])
+def profile_data(request):
+    uid = _firebase_uid(request)
+    if uid is None:
+        return JsonResponse({"error": "A Firebase account is required."}, status=403)
+    update = {}
+    if request.method == "POST":
+        for field, (low, high) in PROFILE_LIMITS.items():
+            raw = request.POST.get(field)
+            if raw is None:
+                continue
+            try:
+                value = float(raw)
+            except ValueError:
+                return JsonResponse({"error": "Enter a number."}, status=400)
+            if not low <= value <= high:
+                return JsonResponse({"error": f"Enter {low}-{high}."}, status=400)
+            update[field] = round(value, 1)
+        if not update:
+            return JsonResponse({"error": "Nothing to save."}, status=400)
+    try:
+        ref = get_firestore_client().collection("users").document(uid)
+        if request.method == "POST":
+            ref.set(update, merge=True)
+            return JsonResponse(update)
+        data = ref.get().to_dict() or {}
+        return JsonResponse({k: data.get(k) for k in PROFILE_LIMITS})
+    except Exception:
+        logger.exception("Profile storage failed for Firebase UID %s", uid)
+        return JsonResponse({"error": "Profile storage is unavailable."}, status=503)
+    
