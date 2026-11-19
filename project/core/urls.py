@@ -19,4 +19,7 @@ urlpatterns = [
     path("exercises/submit/", submit_exercise, name="submit_exercise"),
     path("repkin/message/", repkin_message, name="repkin_message"),
     path("locker-room/", views.locker_room, name="locker_room"),
+    path("profile/", views.profile_data, name="profile_data"),
+    path("user/name/", views.update_user_name, name="update_user_name"),
+    path("repkin/name/", views.update_repkin_name, name="update_repkin_name"),
 ]
