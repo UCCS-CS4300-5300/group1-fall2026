@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -16,6 +18,14 @@ def logged_in_client(client, db):
 
 def gif_url(level):
     return f"/static/{ARM_VERSIONS[level]}"
+
+
+def sprite_src(content):
+    """The gif the Repkin picture is showing (not the full list for the script)."""
+    tag = re.search(r'<img[^>]*id="repkin-sprite"[^>]*>', content)
+    assert tag, "The Repkin picture was not found on the page"
+    src = re.search(r'src="([^"]+)"', tag.group(0))
+    return src.group(1)
 
 
 # The list of arm versions vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -59,7 +69,7 @@ def test_locker_room_starts_with_no_arms(logged_in_client):
     assert response.status_code == 200
     assert response.context["arm_level"] == 0
     content = response.content.decode()
-    assert gif_url(0) in content
+    assert sprite_src(content) == gif_url(0)
     assert 'href="?arms=1"' in content
 
 
@@ -67,8 +77,7 @@ def test_locker_room_shows_the_chosen_arm_version(logged_in_client):
     response = logged_in_client.get(reverse(LOCKER), {"arms": "2"})
 
     content = response.content.decode()
-    assert gif_url(2) in content
-    assert gif_url(0) not in content
+    assert sprite_src(content) == gif_url(2)
     assert 'href="?arms=3"' in content
 
 
@@ -76,7 +85,7 @@ def test_arrow_on_last_version_goes_back_to_no_arms(logged_in_client):
     response = logged_in_client.get(reverse(LOCKER), {"arms": "3"})
 
     content = response.content.decode()
-    assert gif_url(3) in content
+    assert sprite_src(content) == gif_url(3)
     assert 'href="?arms=0"' in content
 
 
@@ -85,7 +94,7 @@ def test_invalid_arms_value_shows_no_arms_instead_of_crashing(logged_in_client):
 
     assert response.status_code == 200
     assert response.context["arm_level"] == 0
-    assert gif_url(0) in response.content.decode()
+    assert sprite_src(response.content.decode()) == gif_url(0)
 
 
 def test_clicking_through_every_version_comes_back_to_the_start(logged_in_client):

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.templatetags.static import static
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from firebase_admin import auth as firebase_auth
 
@@ -12,9 +13,11 @@ from .firebase_auth import get_firestore_client, verify_firebase_id_token
 from .forms import RepkinSetupForm
 from .models import StarterItem
 from .models_repkin import Repkin
-from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
 
+from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
 from .views_message import GREETING_PENDING_KEY
+from .exercises import EXERCISES
+
 
 logger = logging.getLogger(__name__)
 
@@ -171,13 +174,25 @@ def logout_view(request):
 
 def render_home(request, repkin, setup_form, open_setup=False):
     items = StarterItem.objects.filter(is_active=True).order_by("title")
+
     context = {
         "items": items,
         "repkin": repkin,
         "setup_form": setup_form,
         "open_setup": open_setup,
         "show_welcome": True,
+
+        "exercises": [
+            {
+                "name": name,
+                "label": name.replace("_", " ").title(),
+                "input_type": info["input_type"],
+            }
+            for name, info in EXERCISES.items()
+],
+
     }
+
     return render(request, "core/home.html", context)
 
 #Second Page Request#
@@ -191,6 +206,8 @@ def locker_room(request):
         "arm_level": arm_level,
         "arm_gif": ARM_VERSIONS[arm_level],
         "next_arms": next_arm_level(arm_level),
+        # Every arm gif address, so the page can switch arms without reloading.
+        "arm_gif_urls": [static(path) for path in ARM_VERSIONS],
     }
     return render(request, "core/locker_room.html", context)
 
