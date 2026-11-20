@@ -60,6 +60,16 @@ def test_green_same_stage_arms_and_legs_use_idle_sprite(arms, legs, filename):
         "gifs/Repkins/Green/Arms and Legs/Idle/" + filename
     )
 
+# Check that every supplied purple regular sprite is selected from the mapping.
+def test_purple_sprite_matrix_uses_all_supplied_idle_assets():
+    sprites = {
+        sprite_for("purple", arms, legs)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
+
 # Check that every supplied red sprite is selected from the mapping.
 def test_red_sprite_matrix_uses_all_supplied_idle_assets():
     sprites = {
@@ -71,7 +81,7 @@ def test_red_sprite_matrix_uses_all_supplied_idle_assets():
     assert all(finders.find(path) for path in sprites)
 
 # Check colors without limb art keep their own base sprite.
-@pytest.mark.parametrize("color", ["blue", "purple", "yellow"])
+@pytest.mark.parametrize("color", ["blue", "yellow"])
 def test_colors_without_limb_art_use_their_own_base_sprite(color):
     assert sprite_for(color, 2, 1) == COLOR_BASE_SPRITES[color]
 
@@ -129,20 +139,29 @@ def test_saved_color_and_sprite_are_rendered_together(logged_in_client):
     for url_name in ("core:home", LOCKER):
         response = logged_in_client.get(reverse(url_name))
         assert response.context["repkin"].color == "purple"
-        assert response.context["repkin_sprite"] == COLOR_BASE_SPRITES["purple"]
+        assert response.context["repkin_sprite"] == sprite_for("purple", 1, 2)
 
 # Check base-fallback sprites receive the vertical alignment class.
-@pytest.mark.parametrize("color", ["blue", "purple", "red", "yellow"])
+@pytest.mark.parametrize(
+    ("color", "legs_level", "aligned"),
+    [
+        ("blue", 1, True),
+        ("purple", 0, True),
+        ("purple", 1, False),
+        ("red", 0, True),
+        ("yellow", 1, True),
+    ],
+)
 @pytest.mark.parametrize("url_name", ["core:home", LOCKER])
-def test_base_fallback_sprite_is_aligned(logged_in_client, color, url_name):
+def test_sprite_vertical_alignment(logged_in_client, color, legs_level, aligned, url_name):
     repkin = Repkin.objects.get(owner__username="flexer")
     repkin.color = color
-    repkin.legs_level = 1 if color in {"blue", "purple", "yellow"} else 0
+    repkin.legs_level = legs_level
     repkin.save()
 
     response = logged_in_client.get(reverse(url_name))
 
-    assert b"non-green-no-legs" in response.content
+    assert (b"non-green-no-legs" in response.content) is aligned
 
 
 def test_locker_room_requires_login(client, db):

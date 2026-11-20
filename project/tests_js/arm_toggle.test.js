@@ -15,8 +15,8 @@ function makePage(armsLevel = 0, legsLevel = 0, color = "green") {
     }
 
     const needsInitialOffset =
-        ["blue", "purple", "yellow"].includes(color) ||
-        (color === "red" && legsLevel === 0);
+        ["blue", "yellow"].includes(color) ||
+        ((color === "purple" || color === "red") && legsLevel === 0);
     const html =
         '<img id="repkin-sprite" class="' +
         (needsInitialOffset ? "non-green-no-legs" : "") +
@@ -95,6 +95,15 @@ test("arm and leg selections update independently", async () => {
 
 test("leg changes update red sprite alignment", async () => {
     const { dom } = makePage(0, 0, "red");
+    const sprite = dom.window.document.getElementById("repkin-sprite");
+
+    assert.equal(sprite.classList.contains("non-green-no-legs"), true);
+    await clickControl(dom, "legs-arrow-btn");
+    assert.equal(sprite.classList.contains("non-green-no-legs"), false);
+});
+
+test("purple legs add and remove the sprite alignment", async () => {
+    const { dom } = makePage(0, 0, "purple");
     const sprite = dom.window.document.getElementById("repkin-sprite");
 
     assert.equal(sprite.classList.contains("non-green-no-legs"), true);

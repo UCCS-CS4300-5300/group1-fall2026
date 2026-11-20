@@ -59,10 +59,11 @@
                 armsLevel = saved.arms_level;
                 legsLevel = saved.legs_level;
                 sprite.src = spriteUrls[String(armsLevel)][String(legsLevel)];
-                const alwaysOffsetColors = new Set(["blue", "purple", "yellow"]);
+                const alwaysOffsetColors = new Set(["blue", "yellow"]);
                 const needsOffset =
                     alwaysOffsetColors.has(sprite.dataset.color) ||
-                    (sprite.dataset.color === "red" && legsLevel === 0);
+                    ((sprite.dataset.color === "purple" || sprite.dataset.color === "red") &&
+                        legsLevel === 0);
                 sprite.classList.toggle("non-green-no-legs", needsOffset);
                 armsLink.dataset.armLevel = String(armsLevel);
                 legsLink.dataset.legLevel = String(legsLevel);
