@@ -8,6 +8,9 @@ class Repkin(models.Model):
     owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="repkin", null=True)
     mood = models.CharField(max_length=20)
     color = models.CharField(max_length=20)
+    # Store the selected arm and leg sprite levels for this Repkin.
+    arms_level = models.PositiveSmallIntegerField(default=0)
+    legs_level = models.PositiveSmallIntegerField(default=0)
     name = models.CharField(max_length=30, blank=True)
     favorite_activity = models.CharField(max_length=40, blank=True)
     favorite_food = models.CharField(max_length=40, blank=True)

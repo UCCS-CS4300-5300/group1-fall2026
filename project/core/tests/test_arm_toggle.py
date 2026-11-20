@@ -1,10 +1,17 @@
-import re
-
 import pytest
 from django.contrib.auth.models import User
+from django.contrib.staticfiles import finders
+from django.templatetags.static import static
 from django.urls import reverse
 
-from core.repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
+from core.models_repkin import Repkin
+from core.repkin_looks import (
+    COLOR_BASE_SPRITES,
+    LEVEL_COUNT,
+    next_limb_level,
+    parse_limb_level,
+    sprite_for,
+)
 
 LOCKER = "core:locker_room"
 
@@ -12,100 +19,118 @@ LOCKER = "core:locker_room"
 @pytest.fixture
 def logged_in_client(client, db):
     user = User.objects.create_user("flexer", password="pw12345!")
+    # Start each test with an owned Repkin at its default sprite levels.
+    Repkin.objects.create(owner=user, mood="content", color="green")
     client.force_login(user)
     return client
 
-
-def gif_url(level):
-    return f"/static/{ARM_VERSIONS[level]}"
-
-
-def sprite_src(content):
-    """The gif the Repkin picture is showing (not the full list for the script)."""
-    tag = re.search(r'<img[^>]*id="repkin-sprite"[^>]*>', content)
-    assert tag, "The Repkin picture was not found on the page"
-    src = re.search(r'src="([^"]+)"', tag.group(0))
-    return src.group(1)
-
-
-# The list of arm versions vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-def test_there_are_four_arm_versions_in_order():
-    assert len(ARM_VERSIONS) == 4
-    assert "Base" in ARM_VERSIONS[0]
-    assert "Arms1" in ARM_VERSIONS[1]
-    assert "Arms2" in ARM_VERSIONS[2]
-    assert "Arms3" in ARM_VERSIONS[3]
-
-
-# Reading the ?arms= value vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
+# Check that limb-level input is normalized and cycles correctly.
 @pytest.mark.parametrize("value, expected", [("0", 0), ("1", 1), ("3", 3)])
-def test_valid_arm_levels_are_kept(value, expected):
-    assert parse_arm_level(value) == expected
+def test_valid_limb_levels_are_kept(value, expected):
+    assert parse_limb_level(value) == expected
 
 
 @pytest.mark.parametrize("value", [None, "", "banana", "-1", "4", "1.5"])
-def test_invalid_arm_levels_fall_back_to_no_arms(value):
-    assert parse_arm_level(value) == 0
+def test_invalid_limb_levels_fall_back_to_no_limbs(value):
+    assert parse_limb_level(value) == 0
 
 
-# Moving to the next version vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+@pytest.mark.parametrize("level, expected", [(0, 1), (1, 2), (2, 3), (3, 0)])
+def test_next_limb_level_moves_forward_and_wraps(level, expected):
+    assert next_limb_level(level) == expected
 
-@pytest.mark.parametrize("level, expected", [(0, 1), (1, 2), (2, 3)])
-def test_next_arm_level_moves_forward(level, expected):
-    assert next_arm_level(level) == expected
+# Check all supported green arm and leg combinations.
+def test_green_sprite_matrix_has_every_limb_combination():
+    sprites = {
+        sprite_for("green", arms, legs)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
 
+# Check that every supplied red sprite is selected from the mapping.
+def test_red_sprite_matrix_uses_all_supplied_idle_assets():
+    sprites = {
+        sprite_for("red", arms, legs)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
 
-def test_next_arm_level_wraps_after_the_last_version():
-    assert next_arm_level(3) == 0
+# Check colors without limb art keep their own base sprite.
+@pytest.mark.parametrize("color", ["blue", "purple", "yellow"])
+def test_colors_without_limb_art_use_their_own_base_sprite(color):
+    assert sprite_for(color, 2, 1) == COLOR_BASE_SPRITES[color]
 
-
-# The locker room page vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-def test_locker_room_starts_with_no_arms(logged_in_client):
-    response = logged_in_client.get(reverse(LOCKER))
-
-    assert response.status_code == 200
-    assert response.context["arm_level"] == 0
-    content = response.content.decode()
-    assert sprite_src(content) == gif_url(0)
-    assert 'href="?arms=1"' in content
-
-
-def test_locker_room_shows_the_chosen_arm_version(logged_in_client):
-    response = logged_in_client.get(reverse(LOCKER), {"arms": "2"})
-
-    content = response.content.decode()
-    assert sprite_src(content) == gif_url(2)
-    assert 'href="?arms=3"' in content
-
-
-def test_arrow_on_last_version_goes_back_to_no_arms(logged_in_client):
-    response = logged_in_client.get(reverse(LOCKER), {"arms": "3"})
-
-    content = response.content.decode()
-    assert sprite_src(content) == gif_url(3)
-    assert 'href="?arms=0"' in content
-
-
-def test_invalid_arms_value_shows_no_arms_instead_of_crashing(logged_in_client):
-    response = logged_in_client.get(reverse(LOCKER), {"arms": "banana"})
+# Check that valid sprite levels are stored on the owned Repkin.
+def test_sprite_levels_are_saved(logged_in_client):
+    response = logged_in_client.post(
+        reverse("core:update_repkin_sprite"),
+        {"arms_level": "2", "legs_level": "3"},
+    )
 
     assert response.status_code == 200
-    assert response.context["arm_level"] == 0
-    assert sprite_src(response.content.decode()) == gif_url(0)
+    assert response.json() == {"arms_level": 2, "legs_level": 3}
+    repkin = Repkin.objects.get(owner__username="flexer")
+    assert repkin.arms_level == 2
+    assert repkin.legs_level == 3
 
+# Check invalid limb levels are rejected without changing saved values.
+@pytest.mark.parametrize(
+    "values",
+    [
+        {"arms_level": "x", "legs_level": "0"},
+        {"arms_level": "0", "legs_level": "4"},
+        {"arms_level": "-1", "legs_level": "0"},
+    ],
+)
+def test_invalid_sprite_levels_are_rejected(logged_in_client, values):
+    response = logged_in_client.post(reverse("core:update_repkin_sprite"), values)
 
-def test_clicking_through_every_version_comes_back_to_the_start(logged_in_client):
-    seen = []
-    level = 0
-    for _ in range(len(ARM_VERSIONS) + 1):
-        response = logged_in_client.get(reverse(LOCKER), {"arms": str(level)})
-        seen.append(response.context["arm_level"])
-        level = response.context["next_arms"]
+    assert response.status_code == 400
+    repkin = Repkin.objects.get(owner__username="flexer")
+    assert repkin.arms_level == 0
+    assert repkin.legs_level == 0
 
-    assert seen == [0, 1, 2, 3, 0]
+# Check saved sprite selections render on both main pages.
+def test_saved_sprite_is_rendered_on_both_pages(logged_in_client):
+    logged_in_client.post(
+        reverse("core:update_repkin_sprite"),
+        {"arms_level": "1", "legs_level": "2"},
+    )
+    sprite_path = sprite_for("green", 1, 2)
+
+    for url_name in ("core:home", LOCKER):
+        response = logged_in_client.get(reverse(url_name))
+        assert response.context["repkin_sprite"] == sprite_path
+        assert static(sprite_path).encode() in response.content
+
+# Check the selected color and saved limb levels render together.
+def test_saved_color_and_sprite_are_rendered_together(logged_in_client):
+    repkin = Repkin.objects.get(owner__username="flexer")
+    repkin.color = "purple"
+    repkin.arms_level = 1
+    repkin.legs_level = 2
+    repkin.save()
+
+    for url_name in ("core:home", LOCKER):
+        response = logged_in_client.get(reverse(url_name))
+        assert response.context["repkin"].color == "purple"
+        assert response.context["repkin_sprite"] == COLOR_BASE_SPRITES["purple"]
+
+# Check base-fallback sprites receive the vertical alignment class.
+@pytest.mark.parametrize("color", ["blue", "purple", "red", "yellow"])
+@pytest.mark.parametrize("url_name", ["core:home", LOCKER])
+def test_base_fallback_sprite_is_aligned(logged_in_client, color, url_name):
+    repkin = Repkin.objects.get(owner__username="flexer")
+    repkin.color = color
+    repkin.legs_level = 1 if color in {"blue", "purple", "yellow"} else 0
+    repkin.save()
+
+    response = logged_in_client.get(reverse(url_name))
+
+    assert b"non-green-no-legs" in response.content
 
 
 def test_locker_room_requires_login(client, db):

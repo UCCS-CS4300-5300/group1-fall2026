@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <audio id="bg-music" src="{% static 'audio/ES_Casanova_Instrumental.mp3' %}" autoplay loop></audio>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
     <style>
@@ -23,7 +23,10 @@
     <div class="stage">
 
         <img src="{% static 'img/workout_room.png' %}" alt="Workout room" class="room">
-        <img src="{% static 'gifs/(Base)TiredAnimation.gif' %}" alt="Repkin" class="user-base-gif">
+        <!-- Show the Repkin sprite selected for this account. -->
+        <img src="{% static repkin_sprite %}" alt="Repkin"
+            class="user-base-gif{% if sprite_needs_vertical_offset %} non-green-no-legs{% endif %}"
+            id="repkin-sprite">
         {% include "core/_repkin_bubble.html" %}
 
         <!--Locker Room Button-->

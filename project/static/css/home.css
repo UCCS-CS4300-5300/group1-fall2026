@@ -73,6 +73,11 @@ position: absolute;
     image-rendering: pixelated;
 }
 
+/* Align non-green base sprites that have taller transparent canvases. */
+.user-base-gif.non-green-no-legs {
+    transform: translate(-50%, -50%) translateY(29%);
+}
+
 .user_name {
     margin: 0;
     font-size: 16px;

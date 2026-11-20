@@ -3,9 +3,10 @@ import re
 
 import pytest
 from django.contrib.auth.models import User
+from django.templatetags.static import static
 from django.urls import reverse
 
-from core.repkin_looks import ARM_VERSIONS
+from core.repkin_looks import LEVEL_COUNT, sprite_urls_for
 
 LOCKER = "core:locker_room"
 
@@ -17,9 +18,10 @@ def logged_in_client(client, db):
     return client
 
 
+# Read the sprite URL matrix embedded in the locker-room page.
 def gif_urls_on_page(content):
     match = re.search(
-        r'<script id="arm-gif-urls" type="application/json">(.*?)</script>',
+        r'<script id="sprite-gif-urls" type="application/json">(.*?)</script>',
         content,
         re.S,
     )
@@ -27,26 +29,45 @@ def gif_urls_on_page(content):
     return json.loads(match.group(1))
 
 
-def test_page_sends_every_arm_gif_in_order(logged_in_client):
+# Check that the browser receives every sprite combination.
+def test_page_sends_every_arm_and_leg_combination(logged_in_client):
     content = logged_in_client.get(reverse(LOCKER)).content.decode()
-    assert gif_urls_on_page(content) == [f"/static/{path}" for path in ARM_VERSIONS]
+    expected = {
+        arms: {legs: static(path) for legs, path in versions.items()}
+        for arms, versions in sprite_urls_for("green").items()
+    }
+    assert gif_urls_on_page(content) == expected
+    assert all(len(versions) == LEVEL_COUNT for versions in expected.values())
 
 
+# Check that the locker room loads the sprite-control script.
 def test_page_loads_the_arm_toggle_script(logged_in_client):
     content = logged_in_client.get(reverse(LOCKER)).content.decode()
     assert "core/arm_toggle.js" in content
 
 
-def test_arrow_knows_the_current_arm_level(logged_in_client):
-    content = logged_in_client.get(reverse(LOCKER), {"arms": "2"}).content.decode()
+# Check that both controls receive the saved limb levels.
+def test_controls_know_the_saved_arm_and_leg_levels(logged_in_client):
+    logged_in_client.post(
+        reverse("core:update_repkin_sprite"),
+        {"arms_level": "2", "legs_level": "3"},
+    )
+    content = logged_in_client.get(reverse(LOCKER)).content.decode()
     assert 'data-arm-level="2"' in content
+    assert 'data-leg-level="3"' in content
 
 
-def test_arrow_still_works_as_a_link_without_javascript(logged_in_client):
-    content = logged_in_client.get(reverse(LOCKER), {"arms": "3"}).content.decode()
-    assert 'href="?arms=0"' in content
+# Check that both controls and their save endpoint are rendered.
+def test_limb_controls_and_save_url_are_present(logged_in_client):
+    content = logged_in_client.get(reverse(LOCKER)).content.decode()
+    assert 'id="arms-arrow-btn"' in content
+    assert 'id="legs-arrow-btn"' in content
+    assert 'id="sprite-gif-urls"' in content
+    assert 'action="/repkin/sprite/"' in content
 
 
-def test_invalid_arms_value_gives_level_zero_to_the_script(logged_in_client):
-    content = logged_in_client.get(reverse(LOCKER), {"arms": "banana"}).content.decode()
-    assert 'data-arm-level="0"' in content
+# Check that each control links to its next level.
+def test_limb_control_links_have_next_levels(logged_in_client):
+    content = logged_in_client.get(reverse(LOCKER)).content.decode()
+    assert 'href="?arms=1"' in content
+    assert 'href="?legs=1"' in content

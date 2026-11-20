@@ -1,41 +1,98 @@
 
 (function () {
-    function nextArmLevel(level, count) {
+    // Advance to the next limb level and wrap at the end.
+    function nextLimbLevel(level, count) {
         return (level + 1) % count;
     }
 
+    // Connect the arm and leg controls to saved sprite updates.
     function setupArmToggle(doc, win) {
-        const link = doc.getElementById("arms-arrow-btn");
+        const armsLink = doc.getElementById("arms-arrow-btn");
+        const legsLink = doc.getElementById("legs-arrow-btn");
         const sprite = doc.getElementById("repkin-sprite");
-        const urlData = doc.getElementById("arm-gif-urls");
-        if (!link || !sprite || !urlData) {
+        const urlData = doc.getElementById("sprite-gif-urls");
+        const saveForm = doc.getElementById("sprite-save-form");
+        const status = doc.getElementById("sprite-save-status");
+        if (!armsLink || !legsLink || !sprite || !urlData || !saveForm || !status) {
             return;
         }
 
-        const gifs = JSON.parse(urlData.textContent);
-        if (gifs.length === 0) {
-            return;
+        const spriteUrls = JSON.parse(urlData.textContent);
+        const tokenInput = saveForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        let armsLevel = parseInt(armsLink.dataset.armLevel, 10) || 0;
+        let legsLevel = parseInt(legsLink.dataset.legLevel, 10) || 0;
+        let saving = false;
+
+        // Keep the non-JavaScript links pointed at the next levels.
+        function updateControlLinks() {
+            armsLink.setAttribute("href", "?arms=" + nextLimbLevel(armsLevel, 4));
+            legsLink.setAttribute("href", "?legs=" + nextLimbLevel(legsLevel, 4));
         }
 
-        let level = parseInt(link.dataset.armLevel, 10) || 0;
+        // Save both levels together and update the displayed sprite on success.
+        async function saveLevels(nextArmsLevel, nextLegsLevel) {
+            if (saving) {
+                return;
+            }
+            saving = true;
+            armsLink.setAttribute("aria-disabled", "true");
+            legsLink.setAttribute("aria-disabled", "true");
+            status.textContent = "";
 
-        link.addEventListener("click", function (event) {
-            // Stop the page from reloading, which is what restarted the music.
+            const body = new URLSearchParams({
+                arms_level: String(nextArmsLevel),
+                legs_level: String(nextLegsLevel),
+                csrfmiddlewaretoken: tokenInput ? tokenInput.value : "",
+            });
+
+            try {
+                const response = await win.fetch(saveForm.action, {
+                    method: "POST",
+                    body: body,
+                    credentials: "same-origin",
+                });
+                if (!response.ok) {
+                    throw new Error("The sprite selection could not be saved.");
+                }
+
+                const saved = await response.json();
+                armsLevel = saved.arms_level;
+                legsLevel = saved.legs_level;
+                sprite.src = spriteUrls[String(armsLevel)][String(legsLevel)];
+                armsLink.dataset.armLevel = String(armsLevel);
+                legsLink.dataset.legLevel = String(legsLevel);
+                updateControlLinks();
+                win.history.replaceState(
+                    null,
+                    "",
+                    "?arms=" + armsLevel + "&legs=" + legsLevel
+                );
+            } catch (error) {
+                status.textContent = error.message || "The sprite selection could not be saved.";
+            } finally {
+                saving = false;
+                armsLink.removeAttribute("aria-disabled");
+                legsLink.removeAttribute("aria-disabled");
+            }
+        }
+
+        // Save the next arm level while preserving the current leg level.
+        armsLink.addEventListener("click", function (event) {
             event.preventDefault();
-
-            level = nextArmLevel(level, gifs.length);
-            sprite.src = gifs[level];
-            link.dataset.armLevel = String(level);
-            link.setAttribute("href", "?arms=" + nextArmLevel(level, gifs.length));
-
-            // Keep the address bar in sync, so a refresh shows the same arms.
-            win.history.replaceState(null, "", "?arms=" + level);
+            saveLevels(nextLimbLevel(armsLevel, 4), legsLevel);
         });
+
+        // Save the next leg level while preserving the current arm level.
+        legsLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            saveLevels(armsLevel, nextLimbLevel(legsLevel, 4));
+        });
+
+        updateControlLinks();
     }
 
     if (typeof module !== "undefined" && module.exports) {
-        // Running in the Node tests.
-        module.exports = { nextArmLevel, setupArmToggle };
+        module.exports = { nextLimbLevel, setupArmToggle };
     } else {
         // Running in the browser.
         document.addEventListener("DOMContentLoaded", function () {
