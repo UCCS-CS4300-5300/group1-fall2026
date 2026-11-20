@@ -19,6 +19,7 @@
         <!-- Show the saved Repkin sprite in the locker room. -->
         <img src="{% static repkin_sprite %}" alt="Repkin"
             class="user-base-gif{% if sprite_needs_vertical_offset %} non-green-no-legs{% endif %}"
+            data-color="{{ repkin.color }}"
             id="repkin-sprite">
         {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
         <!-- THIS WORKS ->>>{% include "core/_repkin_bubble.html" %} -->

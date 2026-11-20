@@ -5,7 +5,7 @@ const { JSDOM } = require("jsdom");
 const { nextLimbLevel, setupArmToggle } = require("../static/core/arm_toggle.js");
 
 // Build a small locker-room page with sprite URLs and a mocked save endpoint.
-function makePage(armsLevel = 0, legsLevel = 0) {
+function makePage(armsLevel = 0, legsLevel = 0, color = "green") {
     const urls = {};
     for (let arms = 0; arms < 4; arms++) {
         urls[arms] = {};
@@ -14,8 +14,13 @@ function makePage(armsLevel = 0, legsLevel = 0) {
         }
     }
 
+    const needsInitialOffset =
+        ["blue", "purple", "yellow"].includes(color) ||
+        (color === "red" && legsLevel === 0);
     const html =
-        '<img id="repkin-sprite" src="' + urls[armsLevel][legsLevel] + '">' +
+        '<img id="repkin-sprite" class="' +
+        (needsInitialOffset ? "non-green-no-legs" : "") +
+        '" data-color="' + color + '" src="' + urls[armsLevel][legsLevel] + '">' +
         '<a id="arms-arrow-btn" href="?arms=1" data-arm-level="' + armsLevel + '"></a>' +
         '<a id="legs-arrow-btn" href="?legs=1" data-leg-level="' + legsLevel + '"></a>' +
         '<script id="sprite-gif-urls" type="application/json">' + JSON.stringify(urls) + "</script>" +
@@ -86,6 +91,15 @@ test("arm and leg selections update independently", async () => {
     assert.equal(dom.window.document.getElementById("arms-arrow-btn").dataset.armLevel, "1");
     assert.equal(dom.window.document.getElementById("legs-arrow-btn").dataset.legLevel, "1");
     assert.equal(dom.window.location.search, "?arms=1&legs=1");
+});
+
+test("leg changes update red sprite alignment", async () => {
+    const { dom } = makePage(0, 0, "red");
+    const sprite = dom.window.document.getElementById("repkin-sprite");
+
+    assert.equal(sprite.classList.contains("non-green-no-legs"), true);
+    await clickControl(dom, "legs-arrow-btn");
+    assert.equal(sprite.classList.contains("non-green-no-legs"), false);
 });
 
 // Check that a failed save leaves the displayed sprite unchanged.
