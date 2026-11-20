@@ -41,12 +41,13 @@ def test_next_limb_level_moves_forward_and_wraps(level, expected):
 
 # Check all supported green arm and leg combinations.
 def test_green_sprite_matrix_has_every_limb_combination():
-    sprites = {
+    sprites = [
         sprite_for("green", arms, legs)
         for arms in range(LEVEL_COUNT)
         for legs in range(LEVEL_COUNT)
-    }
-    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    ]
+    assert len(set(sprites)) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
 
 @pytest.mark.parametrize(
     ("arms", "legs", "filename"),
@@ -115,6 +116,48 @@ def test_invalid_sprite_levels_are_rejected(logged_in_client, values):
     assert repkin.arms_level == 0
     assert repkin.legs_level == 0
 
+
+@pytest.mark.parametrize(
+    ("color", "arms", "legs", "expected_fragment"),
+    [
+        ("green", 0, 0, "Green_Tired_Leg0_Arms0.gif"),
+        ("green", 2, 3, "Green_Tired_Leg3_Arms2.gif"),
+        ("red", 0, 0, "Red_Tired_Leg0_Arms0.gif"),
+        ("red", 3, 2, "Red_Tired_Leg2_Arms3.gif"),
+    ],
+)
+def test_tired_sprite_for_supported_colors(logged_in_client, color, arms, legs, expected_fragment):
+    from core.repkin_looks import sprite_for
+
+    sprite_path = sprite_for(color, arms, legs, is_tired=True)
+    assert expected_fragment in sprite_path
+    assert finders.find(sprite_path)
+
+
+def test_purple_tired_sprite_matrix_uses_all_supplied_assets():
+    sprites = {
+        sprite_for("purple", arms, legs, is_tired=True)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
+
+
+def test_tired_state_is_saved_and_rendered_on_both_pages(logged_in_client):
+    repkin = Repkin.objects.get(owner__username="flexer")
+    repkin.is_tired = True
+    repkin.save(update_fields=["is_tired"])
+    assert Repkin.objects.get(pk=repkin.pk).is_tired is True
+
+    repkin.color = "purple"
+    repkin.save(update_fields=["color"])
+    tired_path = sprite_for("purple", 0, 0, is_tired=True)
+    for url_name in ("core:home", LOCKER):
+        page = logged_in_client.get(reverse(url_name))
+        assert page.context["repkin_sprite"] == tired_path
+
 # Check saved sprite selections render on both main pages.
 def test_saved_sprite_is_rendered_on_both_pages(logged_in_client):
     logged_in_client.post(
@@ -146,6 +189,8 @@ def test_saved_color_and_sprite_are_rendered_together(logged_in_client):
     ("color", "legs_level", "aligned"),
     [
         ("blue", 1, True),
+        ("green", 0, True),
+        ("green", 1, False),
         ("purple", 0, True),
         ("purple", 1, False),
         ("red", 0, True),

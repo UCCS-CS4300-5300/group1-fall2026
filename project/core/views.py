@@ -189,7 +189,9 @@ def render_home(request, repkin, setup_form, open_setup=False):
     context = {
         "items": items,
         "repkin": repkin,
-        "repkin_sprite": sprite_for(repkin.color, arms_level, legs_level),
+        "repkin_sprite": sprite_for(
+            repkin.color, arms_level, legs_level, repkin.is_tired
+        ),
         "sprite_needs_vertical_offset": sprite_needs_vertical_offset(
             repkin.color, legs_level
         ),
@@ -222,7 +224,9 @@ def locker_room(request):
         "setup_form": RepkinSetupForm(instance=repkin),
         "arms_level": arms_level,
         "legs_level": legs_level,
-        "repkin_sprite": sprite_for(repkin.color, arms_level, legs_level),
+        "repkin_sprite": sprite_for(
+            repkin.color, arms_level, legs_level, repkin.is_tired
+        ),
         "sprite_needs_vertical_offset": sprite_needs_vertical_offset(
             repkin.color, legs_level
         ),
@@ -230,7 +234,7 @@ def locker_room(request):
         "next_legs": next_limb_level(legs_level),
         "sprite_gif_urls": {
             arms: {legs: static(path) for legs, path in versions.items()}
-            for arms, versions in sprite_urls_for(repkin.color).items()
+            for arms, versions in sprite_urls_for(repkin.color, repkin.is_tired).items()
         },
         "sprite_update_url": reverse("core:update_repkin_sprite"),
     }

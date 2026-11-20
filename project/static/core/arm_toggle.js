@@ -26,7 +26,7 @@
         function updateSpriteAlignment() {
             const color = sprite.dataset.color || sprite.dataset.repkinColor;
             const needsOffset = ["blue", "yellow"].includes(color)
-                || (["purple", "red"].includes(color) && legsLevel === 0);
+                || (["green", "purple", "red"].includes(color) && legsLevel === 0);
             sprite.classList.toggle("non-green-no-legs", needsOffset);
 
             // Set the transform directly so it cannot remain stale after a limb change.
@@ -76,7 +76,7 @@
                 const alwaysOffsetColors = new Set(["blue", "yellow"]);
                 const needsOffset =
                     alwaysOffsetColors.has(sprite.dataset.color) ||
-                    ((sprite.dataset.color === "purple" || sprite.dataset.color === "red") &&
+                    (["green", "purple", "red"].includes(sprite.dataset.color) &&
                         legsLevel === 0);
                 sprite.classList.toggle("non-green-no-legs", needsOffset);
                 armsLink.dataset.armLevel = String(armsLevel);

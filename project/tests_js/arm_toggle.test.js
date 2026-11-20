@@ -14,11 +14,8 @@ function makePage(armsLevel = 0, legsLevel = 0, color = "green") {
         }
     }
 
-    const needsInitialOffset =
-        ["blue", "yellow"].includes(color) ||
-        ((color === "purple" || color === "red") && legsLevel === 0);
     const html =
-        '<img id="repkin-sprite" src="' + urls[armsLevel][legsLevel] + '">' +
+        '<img id="repkin-sprite" data-color="' + color + '" src="' + urls[armsLevel][legsLevel] + '">' +
         '<a id="arms-arrow-btn" href="?arms=1" data-arm-level="' + armsLevel + '"></a>' +
         '<a id="legs-arrow-btn" href="?legs=1" data-leg-level="' + legsLevel + '"></a>' +
         '<script id="sprite-gif-urls" type="application/json">' + JSON.stringify(urls) + "</script>" +
@@ -134,6 +131,9 @@ test("green and red no-legs alignment toggles with leg level", async () => {
         const { dom } = makePage(0, 0, color);
         const sprite = dom.window.document.getElementById("repkin-sprite");
 
+        assert.equal(sprite.classList.contains("non-green-no-legs"), true);
+        await clickControl(dom, "arms-arrow-btn");
+        assert.equal(spriteSrc(dom), "/static/sprite-1-0.gif");
         assert.equal(sprite.classList.contains("non-green-no-legs"), true);
         await clickControl(dom, "legs-arrow-btn");
         assert.equal(sprite.classList.contains("non-green-no-legs"), false);

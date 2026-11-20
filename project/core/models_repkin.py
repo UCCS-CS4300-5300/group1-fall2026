@@ -11,6 +11,7 @@ class Repkin(models.Model):
     # Store the selected arm and leg sprite levels for this Repkin.
     arms_level = models.PositiveSmallIntegerField(default=0)
     legs_level = models.PositiveSmallIntegerField(default=0)
+    is_tired = models.BooleanField(default=False)
     name = models.CharField(max_length=30, blank=True)
     favorite_activity = models.CharField(max_length=40, blank=True)
     favorite_food = models.CharField(max_length=40, blank=True)
