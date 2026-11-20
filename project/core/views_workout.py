@@ -9,6 +9,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .models_workout import MAX_PRESETS_PER_USER, Workout
 from .units import UNIT_SYSTEMS
+from .views import get_repkin
 from .workout_logs import log_workout, stat_totals
 from .workout_presets import (
     NameTaken, PresetNotFound, PresetValidationError, TooManyPresets,
@@ -54,7 +55,8 @@ def preset_problem(problem):
 @require_GET
 def workout_logging(request):
     """The workout logging page: build a workout, save it as a preset, or load one."""
-    return render(request, "core/workout_logging.html")
+    # The hamburger menu shows the player's and RepKin's names, same as the home page.
+    return render(request, "core/workout_logging.html", {"repkin": get_repkin(request.user)})
 
 
 @login_required

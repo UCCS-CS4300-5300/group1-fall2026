@@ -102,3 +102,20 @@ def test_the_four_section_names_come_from_the_catalog_not_the_template():
     source = get_template("core/workout_logging.html").template.source
     for title in SECTIONS.values():
         assert title not in source
+
+
+def test_page_has_the_shared_banner_home_button_and_hamburger(page):
+    assert "img/workout_logging_banner.png" in page
+    assert 'id="mainMenuButton"' in page
+    assert 'id="mainMenu"' in page
+    assert "js/main_menu.js" in page
+    # The old text link and the big centred logo are gone.
+    assert "Workout room</a>" not in page
+    assert 'class="wl-logo"' not in page
+
+
+def test_page_plays_the_same_track_as_the_home_page(page, client):
+    from django.urls import reverse
+    track = "audio/ES_Casanova_Instrumental.mp3"
+    assert f'id="bg-music" src="/static/{track}"' in page
+    assert track in client.get(reverse("core:home")).content.decode()

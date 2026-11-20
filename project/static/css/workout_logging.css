@@ -38,36 +38,48 @@
 .wl {
     max-width: 560px;
     margin: 0 auto;
-    padding: 1rem 1rem 4rem;
+    padding: 0.75rem 1rem 4rem;
 }
 
-/* ---- Header --------------------------------------------------------------- */
-.wl-header {
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-.wl-back {
-    display: inline-block;
-    float: left;
-    color: var(--wl-accent);
-    text-decoration: none;
-    padding: 0.4rem 0;
-}
-
-.wl-back:hover {
-    text-decoration: underline;
-}
-
-.wl-logo {
-    display: block;
-    width: min(260px, 70%);
+/* ---- Banner ----------------------------------------------------------------- */
+/* The same layout as the other pages: logo, an empty slot, Home, hamburger. The art is
+   270x48 pixels, so the invisible hit areas are placed as percentages of it. */
+.wl-banner {
+    position: relative;
+    max-width: 560px;
     margin: 0 auto;
+}
+
+.wl-banner__art {
+    display: block;
+    width: 100%;
+    height: auto;
     image-rendering: pixelated;
 }
 
+.wl-banner .wl-back,
+.wl-banner__menu {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.wl-banner .wl-back { left: 62%; width: 14.5%; }
+.wl-banner__menu { left: 78%; width: 20.5%; }
+
+.wl-banner .wl-back:focus-visible,
+.wl-banner__menu:focus-visible {
+    outline: 3px solid var(--wl-accent-soft);
+    outline-offset: -3px;
+}
+
 .wl-title {
-    margin: 0.5rem 0 0;
+    margin: 0 0 1rem;
+    text-align: center;
     font-size: 1.4rem;
     color: var(--wl-accent-soft);
 }
@@ -388,4 +400,90 @@
     .wl-add {
         transition: background-color 0.12s;
     }
+}
+
+/* ---- Main menu (hamburger) --------------------------------------------------- */
+/* Same artwork and button positions as the home page. Here it covers the whole window
+   instead of the 9:16 stage, so the panel is sized to fit either way. */
+.main_menu {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+.main_menu.hidden {
+    display: none;
+}
+
+.menu_panel {
+    position: relative;
+    width: min(90vw, 480px, calc(90vh * 1372 / 1596));
+}
+
+.main_menu_png {
+    display: block;
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+}
+
+.menu_field {
+    position: absolute;
+    left: var(--l);
+    top: var(--t);
+    width: var(--w);
+    height: var(--h);
+    margin: 0;
+    background: transparent;
+}
+
+input.menu_field {
+    border: 0;
+    padding: 0 2%;
+    color: #1c2430;
+    font: inherit;
+    font-size: clamp(9px, 2.4vw, 14px);
+}
+
+button.menu_field {
+    border: 0;
+    padding: 0;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.credits_overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+}
+
+.credits_overlay.hidden {
+    display: none;
+}
+
+.credits_png {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.credits_exit_button {
+    position: absolute;
+    left: 85%;
+    top: 9%;
+    width: 6%;
+    height: 6%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    z-index: 5;
 }
