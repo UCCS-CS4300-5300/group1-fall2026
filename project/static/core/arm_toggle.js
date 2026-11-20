@@ -1,4 +1,3 @@
-
 (function () {
     // Advance to the next limb level and wrap at the end.
     function nextLimbLevel(level, count) {
@@ -22,6 +21,21 @@
         let armsLevel = parseInt(armsLink.dataset.armLevel, 10) || 0;
         let legsLevel = parseInt(legsLink.dataset.legLevel, 10) || 0;
         let saving = false;
+
+        // Apply the taller-canvas offset only to no-leg green/red sprites.
+        function updateSpriteAlignment() {
+            const color = sprite.dataset.repkinColor;
+            const needsOffset = ((color === "green" || color === "red") && legsLevel === 0)
+                || ["blue", "purple", "yellow"].includes(color);
+            sprite.classList.toggle("non-green-no-legs", needsOffset);
+
+            // Set the transform directly so it cannot remain stale after a limb change.
+            if (needsOffset) {
+                sprite.style.transform = "translate(-50%, -50%) translateY(29%)";
+            } else {
+                sprite.style.removeProperty("transform");
+            }
+        }
 
         // Keep the non-JavaScript links pointed at the next levels.
         function updateControlLinks() {
@@ -61,6 +75,7 @@
                 sprite.src = spriteUrls[String(armsLevel)][String(legsLevel)];
                 armsLink.dataset.armLevel = String(armsLevel);
                 legsLink.dataset.legLevel = String(legsLevel);
+                updateSpriteAlignment();
                 updateControlLinks();
                 win.history.replaceState(
                     null,
@@ -89,6 +104,7 @@
         });
 
         updateControlLinks();
+        updateSpriteAlignment();
     }
 
     if (typeof module !== "undefined" && module.exports) {

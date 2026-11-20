@@ -120,7 +120,7 @@ def test_saved_color_and_sprite_are_rendered_together(logged_in_client):
         assert response.context["repkin_sprite"] == COLOR_BASE_SPRITES["purple"]
 
 # Check base-fallback sprites receive the vertical alignment class.
-@pytest.mark.parametrize("color", ["blue", "purple", "red", "yellow"])
+@pytest.mark.parametrize("color", ["blue", "green", "purple", "red", "yellow"])
 @pytest.mark.parametrize("url_name", ["core:home", LOCKER])
 def test_base_fallback_sprite_is_aligned(logged_in_client, color, url_name):
     repkin = Repkin.objects.get(owner__username="flexer")
@@ -131,6 +131,19 @@ def test_base_fallback_sprite_is_aligned(logged_in_client, color, url_name):
     response = logged_in_client.get(reverse(url_name))
 
     assert b"non-green-no-legs" in response.content
+
+
+@pytest.mark.parametrize("color", ["green", "red"])
+@pytest.mark.parametrize("url_name", ["core:home", LOCKER])
+def test_limbed_green_and_red_sprites_are_not_aligned(logged_in_client, color, url_name):
+    repkin = Repkin.objects.get(owner__username="flexer")
+    repkin.color = color
+    repkin.legs_level = 1
+    repkin.save()
+
+    response = logged_in_client.get(reverse(url_name))
+
+    assert b"non-green-no-legs" not in response.content
 
 
 def test_locker_room_requires_login(client, db):

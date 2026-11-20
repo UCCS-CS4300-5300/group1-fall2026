@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Locker Room</title>
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=4">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
@@ -19,7 +19,7 @@
         <!-- Show the saved Repkin sprite in the locker room. -->
         <img src="{% static repkin_sprite %}" alt="Repkin"
             class="user-base-gif{% if sprite_needs_vertical_offset %} non-green-no-legs{% endif %}"
-            id="repkin-sprite">
+            id="repkin-sprite" data-repkin-color="{{ repkin.color }}">
         {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
         <!-- THIS WORKS ->>>{% include "core/_repkin_bubble.html" %} -->
         <!-- Also works? But better? {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %} -->
@@ -142,7 +142,7 @@
 {%include "core/_repkin_modals.html" %}
 <script src="{% static 'js/unit_conversion.js' %}"></script>
 <script src="{% static 'js/main_menu.js' %}"></script>
-<script src="{% static 'core/arm_toggle.js' %}"></script>
+<script src="{% static 'core/arm_toggle.js' %}?v=4"></script>
 </body>
 
 </html>

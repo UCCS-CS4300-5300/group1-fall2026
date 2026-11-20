@@ -4,7 +4,7 @@
 LEVEL_COUNT = 4
 COLORS_WITHOUT_LIMB_SPRITES = {"blue", "purple", "yellow"}
 COLOR_BASE_SPRITES = {
-    "green": "gifs/Repkins/Green/Base/CS5300Sprite_Base_Green_Idle.gif",
+    "green": "gifs/Repkins/Green/Base/CS5300Sprite_Base_Green_Idle_Leg0_Arms0.gif",
     "blue": "gifs/Repkins/Blue/Base/CS5300Sprite_Base.gif",
     "purple": "gifs/Repkins/Purple/Base/CS5300Sprite_Base.gif",
     "red": "gifs/Repkins/Red/Arms and Legs/CS5300Sprite_Base_Red_Idle_Leg0_Arms0.gif",
@@ -13,21 +13,22 @@ COLOR_BASE_SPRITES = {
 
 # Map each available color and limb-level combination to its sprite file.
 SPRITES = {
-    ("green", 1, 0): "gifs/Repkins/Green/Arms/CS5300Sprite_Arms1_Green_Idle.gif",
-    ("green", 2, 0): "gifs/Repkins/Green/Arms/CS5300Sprite_Arms2_Green_Idle.gif",
-    ("green", 3, 0): "gifs/Repkins/Green/Arms/CS5300Sprite_Arms3_Green_Idle.gif",
-    ("green", 0, 1): "gifs/Repkins/Green/Legs/CS5300Sprite_Legs1_Green_Idle.gif",
-    ("green", 0, 2): "gifs/Repkins/Green/Legs/CS5300Sprite_Legs2_Green_Idle.gif",
-    ("green", 0, 3): "gifs/Repkins/Green/Legs/CS5300Sprite_Legs3_Green_Idle-.gif",
-    ("green", 1, 1): "gifs/Repkins/Green/Arms and Legs/Tired/CS5300Sprite_Both_1_Green_Tired.gif",
-    ("green", 2, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_1_Arms_2_Green_Idle.gif",
-    ("green", 3, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_1_Arms_3_Green_Idle.gif",
-    ("green", 1, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_2_Arms_1_Green_Idle.gif",
-    ("green", 2, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Both_2_Green_Idle.gif",
-    ("green", 3, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_2_Arms_3_Green_Idle.gif",
-    ("green", 1, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_3_Arms_1_Green_Idle.gif",
-    ("green", 2, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Legs_3_Arms_2_Green_Idle.gif",
-    ("green", 3, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Both_3_Green_Idle.gif",
+    ("green", 0, 0): "gifs/Repkins/Green/Base/CS5300Sprite_Base_Green_Idle_Leg0_Arms0.gif",
+    ("green", 1, 0): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg0_Arms1.gif",
+    ("green", 2, 0): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg0_Arms2.gif",
+    ("green", 3, 0): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg0_Arms3.gif",
+    ("green", 0, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg1_Arms0.gif",
+    ("green", 1, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg1_Arms1.gif",
+    ("green", 2, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg1_Arms2.gif",
+    ("green", 3, 1): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg1_Arms3.gif",
+    ("green", 0, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg2_Arms0.gif",
+    ("green", 1, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg2_Arms1.gif",
+    ("green", 2, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg2_Arms2.gif",
+    ("green", 3, 2): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg2_Arms3.gif",
+    ("green", 0, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg3_Arms0.gif",
+    ("green", 1, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg3_Arms1.gif",
+    ("green", 2, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg3_Arms2.gif",
+    ("green", 3, 3): "gifs/Repkins/Green/Arms and Legs/Idle/CS5300Sprite_Base_Green_Idle_Leg3_Arms3.gif",
     ("red", 1, 0): "gifs/Repkins/Red/Arms and Legs/CS5300Sprite_Base_Red_Idle_Leg0_Arms1.gif",
     ("red", 2, 0): "gifs/Repkins/Red/Arms and Legs/CS5300Sprite_Base_Red_Idle_Leg0_Arms2.gif",
     ("red", 3, 0): "gifs/Repkins/Red/Arms and Legs/CS5300Sprite_Base_Red_Idle_Leg0_Arms3.gif",
@@ -78,7 +79,7 @@ def sprite_needs_vertical_offset(color, legs_level):
     """Whether the current no-legs art needs alignment for its taller canvas."""
     if color in COLORS_WITHOUT_LIMB_SPRITES:
         return True
-    return color == "red" and parse_limb_level(legs_level) == 0
+    return color in {"green", "red"} and parse_limb_level(legs_level) == 0
 
 
 # Build the sprite URL matrix used by the locker-room controls.
