@@ -9,6 +9,19 @@
 </head>
 <body class="wl-body">
 
+    <!-- Same track as the home page (the workout room). The menu's music button controls it. -->
+    <audio id="bg-music" src="{% static 'audio/ES_Casanova_Instrumental.mp3' %}" autoplay loop></audio>
+
+    <!-- Top banner, laid out like the other pages: RepKinz logo at the left, an empty slot where
+         the Customize / hanger buttons sit elsewhere, then Home and the hamburger menu.
+         The picture is the banner art; the link and button below sit invisibly over its icons. -->
+    <header class="wl-banner">
+        <img src="{% static 'img/workout_logging_banner.png' %}" alt="RepKinz" class="wl-banner__art">
+        <a href="{% url 'core:home' %}" class="wl-back" aria-label="Home (workout room)"></a>
+        <button type="button" id="mainMenuButton" class="wl-banner__menu"
+                aria-label="Open menu" aria-expanded="false"></button>
+    </header>
+
     <div id="workout-app" class="wl"
          data-home-url="{% url 'core:home' %}"
          data-catalog-url="{% url 'core:workout_catalog' %}"
@@ -19,11 +32,7 @@
          data-log-url="{% url 'core:workout_log' %}"
          data-csrf-token="{{ csrf_token }}">
 
-        <header class="wl-header">
-            <a href="{% url 'core:home' %}" class="wl-back">&larr; Workout room</a>
-            <img src="{% static 'img/Logo.png' %}" alt="RepKinz" class="wl-logo">
-            <h1 class="wl-title">Workout Logging</h1>
-        </header>
+        <h1 class="wl-title">Workout Logging</h1>
 
         <div class="wl-actions">
             <button type="button" id="wl-create" class="wl-button wl-button--primary">Create new workout</button>
@@ -117,6 +126,11 @@
         </form>
     </dialog>
 
+    {% include "core/_main_menu.html" %}
+
     <script src="{% static 'js/workout_builder.js' %}"></script>
+    <script src="{% static 'js/unit_conversion.js' %}"></script>
+    <script src="{% static 'js/main_menu.js' %}"></script>
+    <script src="{% static 'js/profile.js' %}"></script>
 </body>
 </html>
