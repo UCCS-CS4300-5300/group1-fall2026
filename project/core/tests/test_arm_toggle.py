@@ -48,6 +48,18 @@ def test_green_sprite_matrix_has_every_limb_combination():
     }
     assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
 
+@pytest.mark.parametrize(
+    ("arms", "legs", "filename"),
+    [
+        (1, 1, "CS5300Sprite_Base_Green_Idle_Leg1_Arms1.gif"),
+        (2, 2, "CS5300Sprite_Base_Green_Idle_Leg2_Arms2.gif"),
+    ],
+)
+def test_green_same_stage_arms_and_legs_use_idle_sprite(arms, legs, filename):
+    assert sprite_for("green", arms, legs) == (
+        "gifs/Repkins/Green/Arms and Legs/Idle/" + filename
+    )
+
 # Check that every supplied red sprite is selected from the mapping.
 def test_red_sprite_matrix_uses_all_supplied_idle_assets():
     sprites = {
