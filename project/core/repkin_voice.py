@@ -150,8 +150,15 @@ def gather_facts(user, just_logged_ids=None):
 # Step 2: build the prompt
 # --------------------------------------------------------------------------
 
-def app_exercise_names():
-    return ", ".join(label for _, label in ExerciseLog.EXERCISE_CHOICES)
+# With dozens of exercises, listing them all would swamp the prompt. We offer a
+# few at random, which also keeps the tips varied.
+TIP_SUGGESTION_COUNT = 6
+
+
+def tip_suggestions(rng):
+    """A few exercise names the model may pick from for a tip."""
+    labels = [label for _, label in ExerciseLog.EXERCISE_CHOICES]
+    return rng.sample(labels, min(TIP_SUGGESTION_COUNT, len(labels)))
 
 
 def eligible_topics(facts):
@@ -168,12 +175,12 @@ def eligible_topics(facts):
     return topics
 
 
-def describe_topic(topic, facts):
+def describe_topic(topic, facts, suggestions=()):
     return {
         "encouragement": "a little general encouragement to keep moving",
         "tip": (
             "one simple, gentle idea they could try, chosen from these "
-            f"exercises: {app_exercise_names()}"
+            f"exercises: {', '.join(suggestions)}"
         ),
         "favorite_food": f"your favorite food ({facts.favorite_food}), in a playful way",
         "favorite_activity": (
@@ -194,7 +201,7 @@ def tidy_last_message(text):
     return " ".join(str(text or "").split())[:MAX_LAST_MESSAGE_CHARS]
 
 
-def situation_for(kind, facts, topic):
+def situation_for(kind, facts, topic, suggestions=()):
     if kind == "greeting":
         if facts.recent_exercises:
             return (
@@ -217,11 +224,11 @@ def situation_for(kind, facts, topic):
         )
     return (
         "The user has been sitting on the home screen for a while. "
-        f"Say something short and friendly about: {describe_topic(topic, facts)}."
+        f"Say something short and friendly about: {describe_topic(topic, facts, suggestions)}."
     )
 
 
-def build_messages(kind, facts, topic=None, last_message=""):
+def build_messages(kind, facts, topic=None, last_message="", suggestions=()):
     """Return the message list for chat().
 
     We send ONE user message and no system message, so the persona in your
@@ -231,7 +238,7 @@ def build_messages(kind, facts, topic=None, last_message=""):
         f"You are {facts.repkin_name}, the user's RepKin companion. "
         "Write ONE message for the speech bubble on their home screen.",
         "",
-        f"Situation: {situation_for(kind, facts, topic)}",
+        f"Situation: {situation_for(kind, facts, topic, suggestions)}",
         "",
         "Facts about you:",
         f"- Name: {facts.repkin_name}",
@@ -331,7 +338,10 @@ def generate_message(user, kind, *, just_logged_ids=None, last_message="", rng=N
 
     facts = gather_facts(user, just_logged_ids)
     topic = rng.choice(eligible_topics(facts)) if kind == "idle" else None
-    messages = build_messages(kind, facts, topic=topic, last_message=last_message)
+    suggestions = tip_suggestions(rng) if topic == "tip" else ()
+    messages = build_messages(
+        kind, facts, topic=topic, last_message=last_message, suggestions=suggestions
+    )
 
     try:
         reply = chat(messages)

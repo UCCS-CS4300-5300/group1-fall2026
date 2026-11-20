@@ -34,6 +34,7 @@ def log_exercise(user, data):
             reps=data.get("reps"),
             duration_seconds=data.get("duration_seconds"),
             distance_miles=data.get("distance_miles"),
+            weight_kg=data.get("weight_kg"),
             **stats,
         )
         send_stats_to_repkin(user, stats, log.logged_at)

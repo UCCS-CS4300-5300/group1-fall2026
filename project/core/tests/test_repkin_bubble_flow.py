@@ -159,13 +159,20 @@ def test_the_bubble_script_never_inserts_text_as_html():
     assert "textContent" in source
 
 
-def test_the_page_and_the_script_agree_on_the_event_name():
-    """The exercise form announces a new log; the bubble listens for it."""
+def test_the_bubble_script_listens_for_the_exercise_logged_event():
     js_source = open(finders.find("core/repkin_bubble.js"), encoding="utf-8").read()
-    home_source = open(get_template("core/home.html").origin.name, encoding="utf-8").read()
-    assert 'new CustomEvent("exercise:logged"' in home_source
-    assert "logIds: [result.log_id]" in home_source
     assert 'addEventListener("exercise:logged"' in js_source
+
+
+
+
+def test_the_page_announces_new_logs_with_the_event_the_bubble_listens_for():
+    """After a workout is logged, the home page tells the bubble about it."""
+    handoff_js = open(finders.find("js/workout_logged.js"), encoding="utf-8").read()
+    home_source = open(get_template("core/home.html").origin.name, encoding="utf-8").read()
+    assert 'CustomEvent("exercise:logged"' in handoff_js
+    assert "logIds" in handoff_js
+    assert "js/workout_logged.js" in home_source
 
 
 # --- logging an exercise and hearing about it ---------------------------------

@@ -1,0 +1,122 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Workout Logging</title>
+    <link rel="stylesheet" href="{% static 'css/workout_logging.css' %}">
+</head>
+<body class="wl-body">
+
+    <div id="workout-app" class="wl"
+         data-home-url="{% url 'core:home' %}"
+         data-catalog-url="{% url 'core:workout_catalog' %}"
+         data-presets-url="{% url 'core:workout_presets' %}"
+         data-save-url="{% url 'core:workout_preset_save' %}"
+         data-detail-url="{% url 'core:workout_preset_detail' 0 %}"
+         data-delete-url="{% url 'core:workout_preset_delete' 0 %}"
+         data-log-url="{% url 'core:workout_log' %}"
+         data-csrf-token="{{ csrf_token }}">
+
+        <header class="wl-header">
+            <a href="{% url 'core:home' %}" class="wl-back">&larr; Workout room</a>
+            <img src="{% static 'img/Logo.png' %}" alt="RepKinz" class="wl-logo">
+            <h1 class="wl-title">Workout Logging</h1>
+        </header>
+
+        <div class="wl-actions">
+            <button type="button" id="wl-create" class="wl-button wl-button--primary">Create new workout</button>
+            <button type="button" id="wl-load" class="wl-button" aria-expanded="false" aria-controls="wl-presets">
+                Load workout preset
+            </button>
+        </div>
+
+        <p id="wl-status" class="wl-status" role="status" aria-live="polite" hidden></p>
+        <div id="wl-errors" class="wl-errors" role="alert" hidden>
+            <p id="wl-errors-heading" class="wl-errors__heading"></p>
+            <ul id="wl-errors-list"></ul>
+        </div>
+
+        <!-- Saved presets: filled in by workout_builder.js -->
+        <section id="wl-presets" class="wl-panel" aria-labelledby="wl-presets-title" hidden>
+            <h2 id="wl-presets-title" class="wl-panel__title">Your workout presets</h2>
+            <p id="wl-presets-empty" class="wl-hint" hidden>
+                You haven't saved any workouts yet. Create one to get started.
+            </p>
+            <ul id="wl-preset-list" class="wl-preset-list"></ul>
+        </section>
+
+        <!-- The workout being built -->
+        <form id="wl-builder" class="wl-builder" novalidate hidden>
+            <div class="wl-name">
+                <label for="wl-name" class="wl-label">Name this workout preset</label>
+                <input type="text" id="wl-name" class="wl-input" maxlength="40" autocomplete="off"
+                       placeholder="Leg day, Morning mobility...">
+            </div>
+            <p id="wl-units" class="wl-hint"></p>
+
+            <div id="wl-sections"></div>
+
+            <div class="wl-footer">
+                <button type="button" id="wl-save" class="wl-button wl-button--primary">Save preset</button>
+                <button type="button" id="wl-log" class="wl-button">Log workout</button>
+            </div>
+        </form>
+
+        <p id="wl-intro" class="wl-hint wl-intro">
+            Create a new workout, or load one you've already saved.
+        </p>
+    </div>
+
+    <!-- Exercise picker: opens from a section's "+" and when you tap an added exercise -->
+    <dialog id="wl-picker" class="wl-dialog" aria-labelledby="wl-picker-title">
+        <form id="wl-picker-form" novalidate>
+            <h2 id="wl-picker-title" class="wl-panel__title">Add an exercise</h2>
+
+            <label for="wl-picker-exercise" class="wl-label">Exercise</label>
+            <select id="wl-picker-exercise" class="wl-input"></select>
+
+            <div id="wl-field-reps" class="wl-fields" hidden>
+                <label class="wl-label">Sets
+                    <input type="number" id="wl-sets" class="wl-input" min="1" max="100" step="1" inputmode="numeric">
+                </label>
+                <label class="wl-label">Reps
+                    <input type="number" id="wl-reps" class="wl-input" min="1" max="1000" step="1" inputmode="numeric">
+                </label>
+            </div>
+
+            <div id="wl-field-weight" class="wl-fields" hidden>
+                <label class="wl-label"><span id="wl-weight-label">Weight</span>
+                    <input type="number" id="wl-weight" class="wl-input" min="0" step="any" inputmode="decimal">
+                </label>
+            </div>
+
+            <div id="wl-field-duration" class="wl-fields" hidden>
+                <label class="wl-label">Minutes
+                    <input type="number" id="wl-minutes" class="wl-input" min="0" step="1" inputmode="numeric">
+                </label>
+                <label class="wl-label">Seconds
+                    <input type="number" id="wl-seconds" class="wl-input" min="0" max="59" step="1" inputmode="numeric">
+                </label>
+            </div>
+
+            <div id="wl-field-distance" class="wl-fields" hidden>
+                <label class="wl-label"><span id="wl-distance-label">Distance</span>
+                    <input type="number" id="wl-distance" class="wl-input" min="0" step="any" inputmode="decimal">
+                </label>
+            </div>
+
+            <p id="wl-picker-error" class="wl-errors wl-errors--inline" role="alert" hidden></p>
+
+            <div class="wl-dialog__buttons">
+                <button type="submit" id="wl-picker-confirm" class="wl-button wl-button--primary">Confirm</button>
+                <button type="button" id="wl-picker-cancel" class="wl-button">Cancel</button>
+                <button type="button" id="wl-picker-remove" class="wl-button wl-button--danger" hidden>Remove</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="{% static 'js/workout_builder.js' %}"></script>
+</body>
+</html>

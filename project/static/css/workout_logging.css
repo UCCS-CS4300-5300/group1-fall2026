@@ -1,0 +1,391 @@
+/* Workout logging page.
+ *
+ * Colours are sampled from the pixel art (workout_room.png): charcoal walls,
+ * lavender glow, wood-tan floor. To restyle the whole page, change the
+ * variables below.
+ */
+:root {
+    --wl-bg: #141515;
+    --wl-surface: #242121;
+    --wl-surface-2: #343030;
+    --wl-ink: #ececec;
+    --wl-muted: #b9b3c2;
+    --wl-accent: #baa0f9;       /* lavender: borders, focus, the "+" bubbles */
+    --wl-accent-soft: #ffd8ff;  /* pale pink-lavender: headings */
+    --wl-wood: #d1bc8d;         /* wood tan: the main buttons */
+    --wl-wood-ink: #241d10;
+    --wl-danger: #ff8f8f;
+    --wl-radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.wl-body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--wl-bg);
+    color: var(--wl-ink);
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+.wl {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 1rem 1rem 4rem;
+}
+
+/* ---- Header --------------------------------------------------------------- */
+.wl-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.wl-back {
+    display: inline-block;
+    float: left;
+    color: var(--wl-accent);
+    text-decoration: none;
+    padding: 0.4rem 0;
+}
+
+.wl-back:hover {
+    text-decoration: underline;
+}
+
+.wl-logo {
+    display: block;
+    width: min(260px, 70%);
+    margin: 0 auto;
+    image-rendering: pixelated;
+}
+
+.wl-title {
+    margin: 0.5rem 0 0;
+    font-size: 1.4rem;
+    color: var(--wl-accent-soft);
+}
+
+/* ---- Buttons ---------------------------------------------------------------- */
+.wl-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.wl-actions .wl-button {
+    flex: 1;
+}
+
+.wl-button {
+    font: inherit;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    min-height: 44px;                  /* comfortable to tap */
+    color: var(--wl-ink);
+    background: var(--wl-surface-2);
+    border: 2px solid var(--wl-accent);
+    border-radius: var(--wl-radius);
+    cursor: pointer;
+}
+
+.wl-button:hover:not(:disabled) {
+    background: #433d3d;
+}
+
+.wl-button--primary {
+    color: var(--wl-wood-ink);
+    background: var(--wl-wood);
+    border-color: var(--wl-wood);
+}
+
+.wl-button--primary:hover:not(:disabled) {
+    background: #e2cf9f;
+}
+
+.wl-button--danger {
+    color: var(--wl-danger);
+    border-color: var(--wl-danger);
+}
+
+.wl-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.wl-button:focus-visible,
+.wl-input:focus-visible,
+.wl-item:focus-visible,
+.wl-add:focus-visible,
+.wl-back:focus-visible {
+    outline: 3px solid var(--wl-accent-soft);
+    outline-offset: 2px;
+}
+
+/* ---- Messages --------------------------------------------------------------- */
+.wl-status {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--wl-surface);
+    border-left: 4px solid var(--wl-accent);
+    border-radius: 6px;
+}
+
+.wl-errors {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.8rem;
+    color: var(--wl-danger);
+    background: var(--wl-surface);
+    border-left: 4px solid var(--wl-danger);
+    border-radius: 6px;
+}
+
+.wl-errors__heading {
+    margin: 0 0 0.25rem;
+    font-weight: 600;
+}
+
+.wl-errors ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.wl-errors--inline {
+    margin: 0.75rem 0 0;
+}
+
+.wl-hint {
+    margin: 0 0 1rem;
+    color: var(--wl-muted);
+    font-size: 0.95rem;
+}
+
+.wl-intro {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* ---- Saved presets ---------------------------------------------------------- */
+.wl-panel {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--wl-surface);
+    border: 2px solid var(--wl-accent);
+    border-radius: var(--wl-radius);
+}
+
+.wl-panel__title {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+    color: var(--wl-accent-soft);
+}
+
+.wl-preset-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 18rem;                 /* a roll-out list you scroll */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wl-preset {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.wl-preset__open {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    color: var(--wl-ink);
+    background: var(--wl-surface-2);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.wl-preset__open:hover {
+    border-color: var(--wl-accent);
+}
+
+.wl-preset__name {
+    display: block;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.wl-preset__meta {
+    display: block;
+    color: var(--wl-muted);
+    font-size: 0.85rem;
+}
+
+.wl-preset .wl-button {
+    padding: 0.4rem 0.8rem;
+}
+
+/* ---- The workout being built -------------------------------------------------- */
+.wl-name {
+    margin-bottom: 0.5rem;
+}
+
+.wl-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.wl-input {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    padding: 0.6rem 0.7rem;
+    min-height: 44px;
+    font: inherit;
+    color: var(--wl-ink);
+    background: var(--wl-surface-2);
+    border: 2px solid #5a5262;
+    border-radius: 10px;
+}
+
+.wl-input:focus {
+    border-color: var(--wl-accent);
+}
+
+.wl-section {
+    margin: 1.5rem 0;
+}
+
+.wl-section__title {
+    margin: 0 0 0.6rem;
+    font-size: 1.1rem;
+    color: var(--wl-accent-soft);
+}
+
+.wl-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wl-item {
+    display: block;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    padding: 0.7rem 0.9rem;
+    color: var(--wl-ink);
+    background: var(--wl-surface);
+    border: 2px solid var(--wl-accent);
+    border-radius: var(--wl-radius);
+    cursor: pointer;
+}
+
+.wl-item:hover {
+    background: var(--wl-surface-2);
+}
+
+.wl-item__label {
+    display: block;
+    font-weight: 600;
+}
+
+.wl-item__detail {
+    display: block;
+    color: var(--wl-muted);
+    font-size: 0.9rem;
+}
+
+/* The dashed rounded "+" bubble */
+.wl-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 56px;
+    margin-top: 0.5rem;
+    font: inherit;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--wl-accent);
+    background: transparent;
+    border: 2px dashed var(--wl-accent);
+    border-radius: var(--wl-radius);
+    cursor: pointer;
+}
+
+.wl-add:hover {
+    background: rgba(186, 160, 249, 0.12);
+}
+
+.wl-section__full {
+    margin: 0.5rem 0 0;
+    color: var(--wl-muted);
+    font-size: 0.9rem;
+}
+
+.wl-footer {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 2rem;
+}
+
+.wl-footer .wl-button {
+    flex: 1;
+}
+
+/* ---- Exercise picker --------------------------------------------------------- */
+.wl-dialog {
+    width: min(92vw, 420px);
+    padding: 1.25rem;
+    color: var(--wl-ink);
+    background: var(--wl-surface);
+    border: 2px solid var(--wl-accent);
+    border-radius: var(--wl-radius);
+}
+
+.wl-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.wl-fields {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.wl-fields .wl-label {
+    flex: 1;
+}
+
+.wl-dialog__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.wl-dialog__buttons .wl-button {
+    flex: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .wl-button,
+    .wl-add {
+        transition: background-color 0.12s;
+    }
+}

@@ -16,6 +16,7 @@ from core.repkin_voice import (
     MAX_MESSAGE_CHARS,
     MAX_WORDS,
     RECENT_EXERCISE_LIMIT,
+    TIP_SUGGESTION_COUNT,
     clean_reply,
     eligible_topics,
     gather_facts,
@@ -305,6 +306,9 @@ class PickTopic:
         assert self.topic in options, f"{self.topic} wasn't an eligible topic"
         return self.topic
 
+    def sample(self, population, k):
+        return list(population)[:k]
+
 
 def test_idle_prompt_uses_the_topic_that_was_chosen(user, repkin, fake_chat):
     generate_message(user, "idle", rng=PickTopic("encouragement"))
@@ -324,18 +328,36 @@ def test_idle_weekly_progress_uses_the_real_count(user, repkin, fake_chat):
     assert "the 2 exercises they logged in the last 7 days" in prompt_sent(fake_chat)
 
 
-def test_idle_tip_only_suggests_exercises_the_app_supports(user, repkin, fake_chat):
+def test_idle_tip_offers_a_handful_of_exercises_the_app_supports(user, repkin, fake_chat):
     generate_message(user, "idle", rng=PickTopic("tip"))
     prompt = prompt_sent(fake_chat)
-    for _, label in ExerciseLog.EXERCISE_CHOICES:
-        assert label in prompt
+    offered = prompt.split("chosen from these exercises: ")[1].split(".")[0].split(", ")
+
+    all_labels = {label for _, label in ExerciseLog.EXERCISE_CHOICES}
+    assert len(offered) == TIP_SUGGESTION_COUNT
+    assert set(offered) <= all_labels
+
+
+def test_idle_tip_does_not_dump_the_whole_catalog_into_the_prompt(user, repkin, fake_chat):
+    generate_message(user, "idle", rng=PickTopic("tip"))
+    assert len(prompt_sent(fake_chat)) < 1500
+
+
+def test_idle_tips_vary_from_one_message_to_the_next(user, repkin, fake_chat):
+    offers = set()
+    for seed in range(8):
+        rng = random.Random(seed)
+        rng.choice = lambda options: "tip"
+        generate_message(user, "idle", rng=rng)
+        offers.add(prompt_sent(fake_chat).split("chosen from these exercises: ")[1].split(".")[0])
+    assert len(offers) > 1
 
 
 def test_idle_topics_with_each_topic_render_without_error(user, repkin, fake_chat):
     log_exercise(user, "push_ups", sets=3, reps=10)
     facts = gather_facts(user)
     for topic in eligible_topics(facts):
-        assert repkin_voice.describe_topic(topic, facts)
+        assert repkin_voice.describe_topic(topic, facts, suggestions=["Push Ups"])
 
 
 def test_previous_message_is_included_so_it_is_not_repeated(user, repkin, fake_chat):

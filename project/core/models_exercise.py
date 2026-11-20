@@ -2,14 +2,13 @@ from django.conf import settings
 from django.db import models
 
 from .exercises import EXERCISES
+from .exercises import exercise_label
 
 
 class ExerciseLog(models.Model):
     """One completed workout entry in a user's exercise history."""
 
-    EXERCISE_CHOICES = [
-        (key, key.replace("_", " ").title()) for key in EXERCISES
-    ]
+    EXERCISE_CHOICES = [(key, exercise_label(key)) for key in EXERCISES]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -22,9 +21,8 @@ class ExerciseLog(models.Model):
     sets = models.PositiveIntegerField(null=True, blank=True)
     reps = models.PositiveIntegerField(null=True, blank=True)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
-    distance_miles = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
+    distance_miles = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    weight_kg = models.DecimalField(max_digits=7, decimal_places=3, null=True, blank=True)
 
     # The stats this workout earned, kept as a record.
     strength = models.PositiveIntegerField(default=0)
