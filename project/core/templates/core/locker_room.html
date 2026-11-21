@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Locker Room</title>
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=5">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
@@ -29,6 +29,14 @@
         <!-- Home page return button, maybe response buble above? -->
         <a href="{% url 'core:home' %}" class="home-page-btn" id="home-page-btn"
             aria-label="Back to workout room"></a>
+
+        <form class="repkin-state-control" method="post" action="{% url 'core:toggle_repkin_tired' %}">
+            {% csrf_token %}
+            <input type="hidden" name="return_to" value="locker_room">
+            <button type="submit" aria-pressed="{{ repkin.is_tired|yesno:'true,false' }}">
+                {% if repkin.is_tired %}Set not tired{% else %}Set tired{% endif %}
+            </button>
+        </form>
 
         <!-- Limb controls save the selected sprite without reloading the page. -->
         <a href="?arms={{ next_arms }}" id="arms-arrow-btn" class="stage_button"
@@ -143,7 +151,7 @@
 {%include "core/_repkin_modals.html" %}
 <script src="{% static 'js/unit_conversion.js' %}"></script>
 <script src="{% static 'js/main_menu.js' %}"></script>
-<script src="{% static 'core/arm_toggle.js' %}?v=5"></script>
+<script src="{% static 'core/arm_toggle.js' %}?v=6"></script>
 </body>
 
 </html>

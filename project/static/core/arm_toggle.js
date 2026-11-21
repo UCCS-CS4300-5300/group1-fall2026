@@ -22,11 +22,11 @@
         let legsLevel = parseInt(legsLink.dataset.legLevel, 10) || 0;
         let saving = false;
 
-        // Apply the taller-canvas offset only to no-leg green/red sprites.
+        // Align taller base canvases and no-leg sprite variants.
         function updateSpriteAlignment() {
             const color = sprite.dataset.color || sprite.dataset.repkinColor;
-            const needsOffset = ["blue", "yellow"].includes(color)
-                || (["green", "purple", "red"].includes(color) && legsLevel === 0);
+            const needsOffset = color === "yellow"
+                || (["blue", "green", "purple", "red"].includes(color) && legsLevel === 0);
             sprite.classList.toggle("non-green-no-legs", needsOffset);
 
             // Set the transform directly so it cannot remain stale after a limb change.
@@ -73,10 +73,9 @@
                 armsLevel = saved.arms_level;
                 legsLevel = saved.legs_level;
                 sprite.src = spriteUrls[String(armsLevel)][String(legsLevel)];
-                const alwaysOffsetColors = new Set(["blue", "yellow"]);
                 const needsOffset =
-                    alwaysOffsetColors.has(sprite.dataset.color) ||
-                    (["green", "purple", "red"].includes(sprite.dataset.color) &&
+                    sprite.dataset.color === "yellow" ||
+                    (["blue", "green", "purple", "red"].includes(sprite.dataset.color) &&
                         legsLevel === 0);
                 sprite.classList.toggle("non-green-no-legs", needsOffset);
                 armsLink.dataset.armLevel = String(armsLevel);

@@ -11,7 +11,9 @@ class Repkin(models.Model):
     # Store the selected arm and leg sprite levels for this Repkin.
     arms_level = models.PositiveSmallIntegerField(default=0)
     legs_level = models.PositiveSmallIntegerField(default=0)
+
     is_tired = models.BooleanField(default=False)
+    
     name = models.CharField(max_length=30, blank=True)
     favorite_activity = models.CharField(max_length=40, blank=True)
     favorite_food = models.CharField(max_length=40, blank=True)
@@ -26,6 +28,12 @@ class Repkin(models.Model):
     progress_strength = models.IntegerField(default=0)
     progress_dexterity = models.IntegerField(default=0)
     progress_endurance = models.IntegerField(default=0)
+
+    def toggle_tired(self):
+        """Switch between tired and not tired, saving the new state."""
+        self.is_tired = not self.is_tired
+        self.save(update_fields=["is_tired"])
+        return self.is_tired
 
     # Read the stats as dicts, same shape as before:
     # {"strength": 50, "dexterity": 50, "endurance": 50}

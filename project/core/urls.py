@@ -24,4 +24,5 @@ urlpatterns = [
     path("repkin/name/", views.update_repkin_name, name="update_repkin_name"),
     # Save the selected arm and leg sprite levels.
     path("repkin/sprite/", views.update_repkin_sprite, name="update_repkin_sprite"),
+    path("repkin/toggle-tired/", views.toggle_repkin_tired, name="toggle_repkin_tired"),
 ]

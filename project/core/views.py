@@ -261,6 +261,18 @@ def update_repkin_sprite(request):
     return JsonResponse({"arms_level": arms_level, "legs_level": legs_level})
 
 
+@login_required
+@require_POST
+def toggle_repkin_tired(request):
+    get_repkin(request.user).toggle_tired()
+    destination = (
+        "core:locker_room"
+        if request.POST.get("return_to") == "locker_room"
+        else "core:home"
+    )
+    return redirect(destination)
+
+
 #Information to be pulled and displayed in the main menu on both pages(Repkin Name and Username)#
 @login_required
 def _clean_name(request):

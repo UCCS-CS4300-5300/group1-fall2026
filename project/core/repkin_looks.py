@@ -2,10 +2,10 @@
 
 # Keep the supported levels and available color base sprites together.
 LEVEL_COUNT = 4
-COLORS_WITHOUT_LIMB_SPRITES = {"blue", "yellow"}
+COLORS_WITHOUT_LIMB_SPRITES = {"yellow"}
 COLOR_BASE_SPRITES = {
     "green": "gifs/Repkins/Green/Base/CS5300Sprite_Base_Green_Idle.gif",
-    "blue": "gifs/Repkins/Blue/Base/CS5300Sprite_Base.gif",
+    "blue": "gifs/Repkins/Blue/Arms and Legs/Idle/CS5300Sprite_Base_Blue_Idle_Leg0_Arms0.gif",
     "purple": "gifs/Repkins/Purple/Arms and Legs/Idle/CS5300Sprite_Base_Purple_Idle_Leg0_Arms0.gif",
     "red": "gifs/Repkins/Red/Arms and Legs/CS5300Sprite_Base_Red_Idle_Leg0_Arms0.gif",
     "yellow": "gifs/Repkins/Yellow/Base/CS5300Sprite_Base.gif",
@@ -62,15 +62,16 @@ SPRITES = {
 }
 
 SPRITES.update({
-    ("green", arms, legs): (
-        "gifs/Repkins/Green/Arms and Legs/Idle/"
-        f"CS5300Sprite_Base_Green_Idle_Leg{legs}_Arms{arms}.gif"
+    (color, arms, legs): (
+        f"gifs/Repkins/{color.title()}/Arms and Legs/Idle/"
+        f"CS5300Sprite_Base_{color.title()}_Idle_Leg{legs}_Arms{arms}.gif"
     )
+    for color in ("green", "blue")
     for arms in range(LEVEL_COUNT)
     for legs in range(LEVEL_COUNT)
 })
 
-# Tired variants supplied for green, red, and purple Repkins.
+# Tired variants supplied for green, red, purple, and blue Repkins.
 TIRED_SPRITES = {
     ("green", 0, 0): "gifs/Repkins/Green/Base/CS5300Sprite_Base_Green_Tired_Leg0_Arms0.gif",
     ("green", 1, 0): "gifs/Repkins/Green/Arms and Legs/Tired/CS5300Sprite_Base_Green_Tired_Leg0_Arms1.gif",
@@ -93,10 +94,10 @@ TIRED_SPRITES = {
 TIRED_SPRITES.update({
     (color, arms, legs): (
         f"gifs/Repkins/{color.title()}/"
-        f"{'Arms and Legs/Tired' if color == 'purple' else 'Arms and Legs'}/"
+        f"{'Arms and Legs' if color == 'red' else 'Arms and Legs/Tired'}/"
         f"CS5300Sprite_Base_{color.title()}_Tired_Leg{legs}_Arms{arms}.gif"
     )
-    for color in ("red", "purple")
+    for color in ("red", "purple", "blue")
     for arms in range(LEVEL_COUNT)
     for legs in range(LEVEL_COUNT)
 })
@@ -139,7 +140,7 @@ def sprite_needs_vertical_offset(color, legs_level):
     """Whether the current no-legs art needs alignment for its taller canvas."""
     if color in COLORS_WITHOUT_LIMB_SPRITES:
         return True
-    return color in {"green", "purple", "red"} and parse_limb_level(legs_level) == 0
+    return color in {"blue", "green", "purple", "red"} and parse_limb_level(legs_level) == 0
 
 
 # Build the sprite URL matrix used by the locker-room controls.

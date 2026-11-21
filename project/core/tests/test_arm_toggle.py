@@ -71,6 +71,18 @@ def test_purple_sprite_matrix_uses_all_supplied_idle_assets():
     assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
     assert all(finders.find(path) for path in sprites)
 
+
+def test_blue_sprite_matrix_uses_all_supplied_idle_assets():
+    sprites = {
+        sprite_for("blue", arms, legs)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
+
+
 # Check that every supplied red sprite is selected from the mapping.
 def test_red_sprite_matrix_uses_all_supplied_idle_assets():
     sprites = {
@@ -82,7 +94,7 @@ def test_red_sprite_matrix_uses_all_supplied_idle_assets():
     assert all(finders.find(path) for path in sprites)
 
 # Check colors without limb art keep their own base sprite.
-@pytest.mark.parametrize("color", ["blue", "yellow"])
+@pytest.mark.parametrize("color", ["yellow"])
 def test_colors_without_limb_art_use_their_own_base_sprite(color):
     assert sprite_for(color, 2, 1) == COLOR_BASE_SPRITES[color]
 
@@ -122,6 +134,8 @@ def test_invalid_sprite_levels_are_rejected(logged_in_client, values):
     [
         ("green", 0, 0, "Green_Tired_Leg0_Arms0.gif"),
         ("green", 2, 3, "Green_Tired_Leg3_Arms2.gif"),
+        ("blue", 0, 0, "Blue_Tired_Leg0_Arms0.gif"),
+        ("blue", 2, 3, "Blue_Tired_Leg3_Arms2.gif"),
         ("red", 0, 0, "Red_Tired_Leg0_Arms0.gif"),
         ("red", 3, 2, "Red_Tired_Leg2_Arms3.gif"),
     ],
@@ -145,15 +159,27 @@ def test_purple_tired_sprite_matrix_uses_all_supplied_assets():
     assert all(finders.find(path) for path in sprites)
 
 
-def test_tired_state_is_saved_and_rendered_on_both_pages(logged_in_client):
+def test_blue_tired_sprite_matrix_uses_all_supplied_assets():
+    sprites = {
+        sprite_for("blue", arms, legs, is_tired=True)
+        for arms in range(LEVEL_COUNT)
+        for legs in range(LEVEL_COUNT)
+    }
+
+    assert len(sprites) == LEVEL_COUNT * LEVEL_COUNT
+    assert all(finders.find(path) for path in sprites)
+
+
+@pytest.mark.parametrize("color", ["green", "purple", "blue", "red"])
+def test_tired_state_is_saved_and_rendered_on_both_pages(logged_in_client, color):
     repkin = Repkin.objects.get(owner__username="flexer")
     repkin.is_tired = True
     repkin.save(update_fields=["is_tired"])
     assert Repkin.objects.get(pk=repkin.pk).is_tired is True
 
-    repkin.color = "purple"
+    repkin.color = color
     repkin.save(update_fields=["color"])
-    tired_path = sprite_for("purple", 0, 0, is_tired=True)
+    tired_path = sprite_for(color, 0, 0, is_tired=True)
     for url_name in ("core:home", LOCKER):
         page = logged_in_client.get(reverse(url_name))
         assert page.context["repkin_sprite"] == tired_path
@@ -188,7 +214,8 @@ def test_saved_color_and_sprite_are_rendered_together(logged_in_client):
 @pytest.mark.parametrize(
     ("color", "legs_level", "aligned"),
     [
-        ("blue", 1, True),
+        ("blue", 0, True),
+        ("blue", 1, False),
         ("green", 0, True),
         ("green", 1, False),
         ("purple", 0, True),

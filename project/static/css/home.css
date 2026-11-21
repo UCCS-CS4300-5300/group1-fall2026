@@ -78,6 +78,24 @@ position: absolute;
     transform: translate(-50%, -50%) translateY(29%);
 }
 
+.repkin-state-control {
+    position: absolute;
+    top: 9%;
+    right: 3%;
+    z-index: 8;
+}
+
+.repkin-state-control button {
+    padding: 0.25rem 0.45rem;
+    border: 1px solid rgba(247, 247, 242, 0.7);
+    border-radius: 4px;
+    color: #f7f7f2;
+    background: rgba(22, 31, 29, 0.88);
+    font: inherit;
+    font-size: clamp(8px, 1vw, 12px);
+    cursor: pointer;
+}
+
 .user_name {
     margin: 0;
     font-size: 16px;

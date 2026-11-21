@@ -126,8 +126,8 @@ test("a page without limb controls does not crash the script", () => {
     assert.doesNotThrow(() => setupArmToggle(dom.window.document, dom.window));
 });
 
-test("green and red no-legs alignment toggles with leg level", async () => {
-    for (const color of ["green", "red"]) {
+test("blue, green, and red no-legs alignment toggles with leg level", async () => {
+    for (const color of ["blue", "green", "red"]) {
         const { dom } = makePage(0, 0, color);
         const sprite = dom.window.document.getElementById("repkin-sprite");
 
