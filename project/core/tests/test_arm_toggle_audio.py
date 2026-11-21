@@ -46,6 +46,15 @@ def test_page_loads_the_arm_toggle_script(logged_in_client):
     assert "core/arm_toggle.js" in content
 
 
+def test_page_loads_the_functional_settings_menu(logged_in_client):
+    content = logged_in_client.get(reverse(LOCKER)).content.decode()
+    assert 'data-profile="height_cm"' in content
+    assert 'data-profile="weight_kg"' in content
+    assert 'id="siBtn"' in content
+    assert 'id="impBtn"' in content
+    assert "js/profile.js" in content
+
+
 # Check that both controls receive the saved limb levels.
 def test_controls_know_the_saved_arm_and_leg_levels(logged_in_client):
     logged_in_client.post(
