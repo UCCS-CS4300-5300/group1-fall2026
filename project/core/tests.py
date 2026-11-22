@@ -220,7 +220,7 @@ def test_locker_room_renders(logged_in_client):
     response = logged_in_client.get(reverse("core:locker_room"))
     assert response.status_code == 200
     assert b'<div class="stage">' in response.content
-    assert b'class="user-base-gif"' in response.content
+    assert b'class="user-base-gif' in response.content
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("url_name", ["core:home", "core:locker_room"])
@@ -256,10 +256,17 @@ def test_locker_room_requires_login(client):
     assert response.status_code == 302
 
 @pytest.mark.django_db
-def test_the_dumbbell_opens_only_the_log_exercise_modal(home_html):
-    assert home_html.count('id="log-exercise-btn"') == 1
-    assert home_html.count('id="exercise-modal"') == 1
+def test_the_dumbbell_links_to_the_workout_logging_page(home_html):
+    assert home_html.count('id="workout-logging-btn"') == 1
+    assert 'href="/workouts/"' in home_html
     assert "practice" not in home_html.lower()
+
+
+@pytest.mark.django_db
+def test_the_old_single_exercise_modal_is_gone_from_home(home_html):
+    assert 'id="log-exercise-btn"' not in home_html
+    assert 'id="exercise-modal"' not in home_html
+    assert 'id="exercise-form"' not in home_html
 
 
 @pytest.mark.django_db

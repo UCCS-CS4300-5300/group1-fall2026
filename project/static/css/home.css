@@ -337,10 +337,3 @@ button.menu_field {
     border-radius: 6px;
     font-size: 12px;
 }
-
-#exercise-modal .practice-panel {
-    position: static;
-    width: auto;
-    max-height: none;
-    margin-top: 1rem;
-}

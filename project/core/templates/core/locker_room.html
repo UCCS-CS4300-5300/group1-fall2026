@@ -14,7 +14,7 @@
 
 <body>
     <div class="stage">
-        <img src="{%static 'img/stat_bars.png'%}" alt="Status bar" class="stats-bar">
+        <img src="{% static 'img/stat_bars.png' %}" alt="Status bar" class="stats-bar">
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
         <!-- Show the saved Repkin sprite in the locker room. -->
         <img src="{% static repkin_sprite %}" alt="Repkin"
@@ -49,7 +49,6 @@
         <p id="sprite-save-status" role="status" aria-live="polite"
             style="position:absolute; left:5%; bottom:2%; z-index:6; color:white"></p>
         {{ sprite_gif_urls|json_script:"sprite-gif-urls" }}
-
 
         <button class="main_menu_button" id="mainMenuButton"
             aria-label="Open menu" aria-expanded="false"></button>
