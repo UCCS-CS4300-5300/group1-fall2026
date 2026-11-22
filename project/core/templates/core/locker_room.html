@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Locker Room</title>
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=5">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
@@ -16,19 +16,39 @@
     <div class="stage">
         <img src="{% static 'img/stat_bars.png' %}" alt="Status bar" class="stats-bar">
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
-        <img src="{% static arm_gif %}" alt="Repkin" class="user-base-gif" id="repkin-sprite">
+        <!-- Show the saved Repkin sprite in the locker room. -->
+        <img src="{% static repkin_sprite %}" alt="Repkin"
+            class="user-base-gif{% if sprite_needs_vertical_offset %} non-green-no-legs{% endif %}"
+            data-color="{{ repkin.color }}"
+            id="repkin-sprite">
         {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
 
         <!-- Home page return button -->
         <a href="{% url 'core:home' %}" class="home-page-btn" id="home-page-btn"
             aria-label="Back to workout room"></a>
 
-        <!-- Arms arrow: arm_toggle.js swaps the picture without reloading; href is a backup -->
+        <form class="repkin-state-control" method="post" action="{% url 'core:toggle_repkin_tired' %}">
+            {% csrf_token %}
+            <input type="hidden" name="return_to" value="locker_room">
+            <button type="submit" aria-pressed="{{ repkin.is_tired|yesno:'true,false' }}">
+                {% if repkin.is_tired %}Set not tired{% else %}Set tired{% endif %}
+            </button>
+        </form>
+
+        <!-- Limb controls save the selected sprite without reloading the page. -->
         <a href="?arms={{ next_arms }}" id="arms-arrow-btn" class="stage_button"
             aria-label="Change Repkin arms"
-            data-arm-level="{{ arm_level }}"
+            data-arm-level="{{ arms_level }}"
             style="display:block; --l:80.5%; --t:75.7%; --w:17.5%; --h:5.6%"></a>
-        {{ arm_gif_urls|json_script:"arm-gif-urls" }}
+        <a href="?legs={{ next_legs }}" id="legs-arrow-btn" class="stage_button"
+            aria-label="Change Repkin legs"
+            data-leg-level="{{ legs_level }}"
+            style="display:block; --l:78%; --t:85.5%; --w:20%; --h:9%; z-index:6"></a>
+        <!-- Provide the save token, status message, and sprite URLs to JavaScript. -->
+        <form id="sprite-save-form" action="{{ sprite_update_url }}" hidden>{% csrf_token %}</form>
+        <p id="sprite-save-status" role="status" aria-live="polite"
+            style="position:absolute; left:5%; bottom:2%; z-index:6; color:white"></p>
+        {{ sprite_gif_urls|json_script:"sprite-gif-urls" }}
 
         <button class="main_menu_button" id="mainMenuButton"
             aria-label="Open menu" aria-expanded="false"></button>
@@ -45,6 +65,6 @@
     <script src="{% static 'js/unit_conversion.js' %}"></script>
     <script src="{% static 'js/main_menu.js' %}"></script>
     <script src="{% static 'js/profile.js' %}"></script>
-    <script src="{% static 'core/arm_toggle.js' %}"></script>
+    <script src="{% static 'core/arm_toggle.js' %}?v=6"></script>
 </body>
 </html>

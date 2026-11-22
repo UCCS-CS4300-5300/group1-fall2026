@@ -24,6 +24,20 @@ def test_repkin_can_store_selected_color():
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(("initial_state", "expected_state"), [(False, True), (True, False)])
+def test_toggle_tired_saves_the_opposite_state(initial_state, expected_state):
+    repkin = Repkin.objects.create(
+        mood="happy",
+        color="green",
+        is_tired=initial_state,
+    )
+
+    assert repkin.toggle_tired() is expected_state
+    repkin.refresh_from_db()
+    assert repkin.is_tired is expected_state
+
+
+@pytest.mark.django_db
 def test_repkin_cannot_have_blank_mood():
     repkin = Repkin(
         mood="",
