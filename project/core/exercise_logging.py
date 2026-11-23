@@ -52,5 +52,10 @@ def send_stats_to_repkin(user, stats, timestamp):
     """
     repkin, _ = Repkin.objects.get_or_create(owner=user, defaults=DEFAULT_REPKIN)
     repkin.update_progress(stats)
+
+    "Check after exercise that new progress to repkin doesn't cross tired boundary."
+    for stat in repkin.progress_stats():
+        if stat >= 25:
+            repkin.is_tired = True
     repkin.save()
     logger.debug("Added %s to %s's Repkin progress at %s", stats, user, timestamp)

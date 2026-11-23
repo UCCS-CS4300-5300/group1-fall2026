@@ -46,12 +46,14 @@ document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
         ? await createUserWithEmailAndPassword(auth, email, password)
         : await signInWithEmailAndPassword(auth, email, password);
 
-        const uid = user.uid;
-        console.log("Registered user UID:", uid);
-        await setDoc(doc(db, "users", uid), {
-          last_login: new Date(),
-          last_logout: new Date(),
-        }, { merge: true });
+        if(isSignUp){
+          const uid = user.uid;
+          console.log("Registered user UID:", uid);
+          await setDoc(doc(db, "users", uid), {
+            last_login: new Date(),
+            last_logout: new Date(),
+          }, { merge: true });
+      }
       
       
       const response = await fetch(form.dataset.sessionUrl, {
