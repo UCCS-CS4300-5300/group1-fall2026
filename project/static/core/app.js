@@ -4,6 +4,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 // These values tell this page which Firebase project handles sign-in.
 const firebaseConfig = {
@@ -15,10 +16,11 @@ const firebaseConfig = {
   appId: "1:965206407298:web:691a5e46be17e8712a5c9b",
   measurementId: "G-YJHJ3N8J1T"
 };
-
 // Connect this page to Firebase's sign-in service.
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
 
 document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
   const isSignUp = form.dataset.firebaseAuth === "signup";
@@ -43,6 +45,15 @@ document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
       const { user } = isSignUp
         ? await createUserWithEmailAndPassword(auth, email, password)
         : await signInWithEmailAndPassword(auth, email, password);
+
+        const uid = user.uid;
+        console.log("Registered user UID:", uid);
+        await setDoc(doc(db, "users", uid), {
+          last_login: new Date(),
+          last_logout: new Date(),
+        }, { merge: true });
+      
+      
       const response = await fetch(form.dataset.sessionUrl, {
         method: "POST",
         credentials: "same-origin",
@@ -63,6 +74,6 @@ document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
       errorMessage.hidden = false;
     } finally {
       submitButton.disabled = false;
-    }
+    }  
   });
 });

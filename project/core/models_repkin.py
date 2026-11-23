@@ -23,6 +23,8 @@ class Repkin(models.Model):
     progress_dexterity = models.IntegerField(default=0)
     progress_endurance = models.IntegerField(default=0)
 
+    is_exhausted = models.BooleanField(default=False)
+
     # Read the stats as dicts, same shape as before:
     # {"strength": 50, "dexterity": 50, "endurance": 50}
     @property
