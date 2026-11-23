@@ -59,6 +59,9 @@ class Repkin(models.Model):
     def update_progress(self, stats):
         for name in STAT_NAMES:
             setattr(self, f"progress_{name}", getattr(self, f"progress_{name}") + stats[name])
+        for name in STAT_NAMES:
+            if getattr(self, f"progress_{name}") > 100:
+                setattr(self, f"progress_{name}", 100)
 
     # Update real stats by adding incoming values.
     def update_stats(self, stats):

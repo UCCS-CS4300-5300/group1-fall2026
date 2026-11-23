@@ -52,5 +52,6 @@ def send_stats_to_repkin(user, stats, timestamp):
     """
     repkin, _ = Repkin.objects.get_or_create(owner=user, defaults=DEFAULT_REPKIN)
     repkin.update_progress(stats)
+
     repkin.save()
     logger.debug("Added %s to %s's Repkin progress at %s", stats, user, timestamp)

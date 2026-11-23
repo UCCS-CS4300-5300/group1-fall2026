@@ -418,7 +418,7 @@ def test_logging_twice_counts_twice(logged_in_client, user):
     post_log(logged_in_client, workout())
     repkin = Repkin.objects.get(owner=user)
     for name, total in expected_totals().items():
-        assert getattr(repkin, f"progress_{name}") == 2 * total
+        assert getattr(repkin, f"progress_{name}") == min(100, 2 * total)
 
 
 def test_the_weight_lifted_does_not_change_the_points(logged_in_client):
