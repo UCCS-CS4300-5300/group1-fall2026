@@ -19,7 +19,7 @@ const firebaseConfig = {
 // Connect this page to Firebase's sign-in service.
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const database = getFirestore(app);
 
 
 document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
@@ -49,7 +49,7 @@ document.querySelectorAll("[data-firebase-auth]").forEach((form) => {
         if(isSignUp){
           const uid = user.uid;
           console.log("Registered user UID:", uid);
-          await setDoc(doc(db, "users", uid), {
+          await setDoc(doc(database, "users", uid), {
             last_login: new Date(),
             last_logout: new Date(),
           }, { merge: true });

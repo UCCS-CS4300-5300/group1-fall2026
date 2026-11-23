@@ -52,7 +52,7 @@ class Repkin(models.Model):
     # count is made real. Resets the progression back to zero to be built up over the next week.
     def add_prog_to_stats(self):
         for name in STAT_NAMES:
-            setattr(self, name, min(getattr(self, name) + getattr(self, f"progress_{name}"), 25))
+            setattr(self, name, getattr(self, name) + getattr(self, f"progress_{name}"))
             setattr(self, f"progress_{name}", 0)
 
     # Update the progression stats by adding incoming values.

@@ -98,32 +98,37 @@ def firebase_session(request):
         user.set_unusable_password()
         user.save(update_fields=["password"])
 
+    # Examine timestamps synced with login, check if time for Repkin Update.
+    last_login_dt = None
+    last_logout_dt = None
+
+    try:
+        user_ref = get_firestore_client().collection("users").document(firebase_uid)
+        doc_snapshot = user_ref.get()
+        user_ref.set({"last_login": datetime.now()}, merge=True)
+
+        if doc_snapshot.exists:
+            user_data = doc_snapshot.to_dict() or {}
+            last_login_dt = user_data.get("last_login")
+            last_logout_dt = user_data.get("last_logout")
+
+        # Should automatically convert progress if last login was a week+ ago.
+        if last_login_dt and last_logout_dt:
+            days = (last_login_dt - last_logout_dt).days + 1
+            repkin = get_repkin(user)
+            if days >= 7:
+                repkin.add_prog_to_stats()
+
+        # SHould convert progress if any day crosses Saturday Threshold
+            for i in range(days):
+                if (last_logout_dt + timedelta(days=i)).weekday() >= 5:
+                    repkin.add_prog_to_stats()
+    except:
+        JsonResponse({"error": "Timestamps could not be evaluated."}, status=409)
+    
+
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     request.session[GREETING_PENDING_KEY] = True
-
-    # Examine timestamps synced with login, check if time for Repkin Update.
-    user_ref = get_firestore_client().collection("users").document(firebase_uid)
-    doc_snapshot = user_ref.get()
-    user_ref.set({"last_login": datetime.now()}, merge=True)
-
-    if doc_snapshot.exists:
-        user_data = doc_snapshot.to_dict() or {}
-        last_login_dt = user_data.get("last_login")
-        last_logout_dt = user_data.get("last_logout")
-
-    # Should automatically convert progress if last login was a week+ ago.
-    days = (last_login_dt - last_logout_dt).days + 1
-    repkin = get_repkin(request.user)
-    if days >= 7:
-        repkin.add_prog_to_stats()
-
-    # SHould convert progress if any day crosses Saturday Threshold
-    for i in range(days):
-        if (last_logout_dt + timedelta(days=i)).weekday() >= 5:
-            repkin.add_prog_to_stats()
-
-
-
     return JsonResponse({"redirectUrl": "/"})
 
 
@@ -215,9 +220,15 @@ def xp_stats(request):
 
 @require_POST
 def logout_view(request):
-    user_ref = get_firestore_client().collection("users").document(firebase_uid)
-    user_data = user_ref.get().to_dict() or {}    
-    user_ref.set({"last_logout": datetime.now()}, merge=True)
+    try:
+        id_token = request.POST.get("idToken")
+        decoded_token = verify_firebase_id_token(id_token)
+        firebase_uid = decoded_token.get("uid")
+        user_ref = get_firestore_client().collection("users").document(firebase_uid)
+        user_data = user_ref.get().to_dict() or {}    
+        user_ref.set({"last_logout": datetime.now()}, merge=True)
+    except:
+        JsonResponse({"error": "The sign-in token is invalid or expired."}, status=401)
     logout(request)
     messages.info(request, "You've been logged out.")
     return redirect("login")
