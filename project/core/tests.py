@@ -220,7 +220,7 @@ def test_locker_room_renders(logged_in_client):
     response = logged_in_client.get(reverse("core:locker_room"))
     assert response.status_code == 200
     assert b'<div class="stage">' in response.content
-    assert b'class="user-base-gif"' in response.content
+    assert b'class="user-base-gif' in response.content
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("url_name", ["core:home", "core:locker_room"])

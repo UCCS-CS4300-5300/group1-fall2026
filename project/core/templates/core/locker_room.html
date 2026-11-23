@@ -6,134 +6,81 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Locker Room</title>
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=5">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stat_bar.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
 </head>
 
 <body>
     <div class="stage">
-        <img src="{%static 'img/stat_bars.png'%}" alt="Status bar" class="stats-bar">
+        <!-- Stat bar: the empty bar, then one piece per lit segment.
+             Each piece is placed by its own numbers in css/stat_bar.css. Each stat fills on its own. -->
+        <div class="stats-bar" id="stat-bars">
+            <img src="{% static 'img/stat_bars/stat_bars_base.png' %}"
+                alt="Strength {{ current_stats.strength }}, Dexterity {{ current_stats.dexterity }}, Endurance {{ current_stats.endurance }}"
+                class="stat-bars-base" id="stat-bars-base">
+            {% for path in stat_bar_images %}
+            <img src="{% static path %}" alt="" aria-hidden="true" class="stat-segment">
+            {% endfor %}
+        </div>
+
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
-        <img src="{% static arm_gif %}" alt="Repkin" class="user-base-gif" id="repkin-sprite">
+        <!-- Show the saved Repkin sprite in the locker room. -->
+        <img src="{% static repkin_sprite %}" alt="Repkin"
+            class="user-base-gif{% if sprite_needs_vertical_offset %} non-green-no-legs{% endif %}"
+            data-color="{{ repkin.color }}"
+            id="repkin-sprite">
         {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %}
-        <!-- THIS WORKS ->>>{% include "core/_repkin_bubble.html" %} -->
-        <!-- Also works? But better? {% include "core/_repkin_bubble.html" with bubble_kinds="idle" bubble_left="42%" %} -->
 
-
-        <!-- Home page return button, maybe response buble above? -->
+        <!-- Home page return button -->
         <a href="{% url 'core:home' %}" class="home-page-btn" id="home-page-btn"
             aria-label="Back to workout room"></a>
 
-        <!-- Arms arrow: switches to the next arm version (invisible, over the drawn arrow).
-             arm_toggle.js swaps the picture without reloading, so the music keeps playing.
-             The href is a backup if JavaScript doesn't load. -->
+        <form class="repkin-state-control" method="post" action="{% url 'core:toggle_repkin_tired' %}">
+            {% csrf_token %}
+            <input type="hidden" name="return_to" value="locker_room">
+            <button type="submit" aria-pressed="{{ repkin.is_tired|yesno:'true,false' }}">
+                {% if repkin.is_tired %}Set not tired{% else %}Set tired{% endif %}
+            </button>
+        </form>
+
+        <!-- Limb controls save the selected sprite without reloading the page.
+             They only cycle through levels the stats have unlocked. -->
         <a href="?arms={{ next_arms }}" id="arms-arrow-btn" class="stage_button"
             aria-label="Change Repkin arms"
-            data-arm-level="{{ arm_level }}"
+            data-arm-level="{{ arms_level }}"
+            data-max-arm-level="{{ max_arms_level }}"
+            data-locked-message="{{ arms_unlock_message }}"
             style="display:block; --l:80.5%; --t:75.7%; --w:17.5%; --h:5.6%"></a>
-        {{ arm_gif_urls|json_script:"arm-gif-urls" }}
+        <a href="?legs={{ next_legs }}" id="legs-arrow-btn" class="stage_button"
+            aria-label="Change Repkin legs"
+            data-leg-level="{{ legs_level }}"
+            data-max-leg-level="{{ max_legs_level }}"
+            data-locked-message="{{ legs_unlock_message }}"
+            style="display:block; --l:78%; --t:85.5%; --w:20%; --h:9%; z-index:6"></a>
+        <!-- Provide the save token, status message, and sprite URLs to JavaScript. -->
+        <form id="sprite-save-form" action="{{ sprite_update_url }}" hidden>{% csrf_token %}</form>
+        <p id="sprite-save-status" role="status" aria-live="polite"
+            style="position:absolute; left:5%; bottom:2%; z-index:6; color:white"></p>
+        {{ sprite_gif_urls|json_script:"sprite-gif-urls" }}
 
+        <button class="main_menu_button" id="mainMenuButton"
+            aria-label="Open menu" aria-expanded="false"></button>
 
-        <button class="main_menu_button"
-            id="mainMenuButton"
-            aria-label="Open menu"
-            aria-expanded="false">
-        </button>
+        <button type="button" id="customize-btn" class="stage_button"
+            aria-label="Customize RepKin" aria-haspopup="dialog"
+            style="--l:46%; --t:0.8%; --w:14.5%; --h:7.8%"></button>
 
-        <button type="button" id="customize-btn" class="stage_button" aria-haspopup="dialog"
-            style="--l:46%; --t:0.8%; --w:14.5%; --h:7.8%">
-        </button>
-
-<!-- Main Menu -->
-    <div id="mainMenu" class="main_menu hidden">
-        <div class="menu_panel">
-
-            <img id="menuArt"
-                src="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
-                alt="Main Menu" class="main_menu_png"
-                data-lbs-on="{% static 'img/main_menu_pngs/main_menu_starter.png' %}"
-                data-lbs-off="{% static 'img/main_menu_pngs/main_menu_lbs_off.png' %}"
-                data-kgs-on="{% static 'img/main_menu_pngs/main_menu_kgs_on.png' %}"
-                data-kgs-off="{% static 'img/main_menu_pngs/main_menu_kgs_off.png' %}">
-
-            <button type="button" id="menuExitButton" class="menu_field" aria-label="Close menu"
-                    style="--l:85%; --t:5.2%; --w:5.2%; --h:4.6%"></button>
-
-            <!-- Name -->
-            <input class="menu_field" readonly value="{{ user.first_name }}" aria-label="Current Repkin name"
-                style="--l:55.5%; --t:19.7%; --w:20%; --h:2.7%">
-            <form class="menu_form">
-                <input class="menu_field" name="name" aria-label="Change Repkin name"
-                    style="--l:55.5%; --t:23.3%; --w:20%; --h:2.7%">
-                <button type="submit" class="menu_field" aria-label="Submit Repkin name"
-                        style="--l:68%; --t:26%; --w:8%; --h:1.8%"></button>
-            </form>
-
-            <!-- Username -->
-            <input class="menu_field" readonly value="{{ user.username }}" aria-label="Current  username"
-                style="--l:55.5%; --t:32%; --w:20%; --h:2.7%">
-            <form class="menu_form">
-                <input class="menu_field" name="username" aria-label="Change username"
-                    style="--l:55.5%; --t:35.5%; --w:20%; --h:2.7%">
-                <button type="submit" class="menu_field" aria-label="Submit username"
-                        style="--l:68%; --t:38.5%; --w:8%; --h:1.8%"></button>
-            </form>
-
-            <!-- Height -->
-            <input class="menu_field" readonly aria-label="Current height"
-                style="--l:55.9%; --t:48.5%; --w:20%; --h:2.7%">
-            <form class="menu_form">
-                <input class="menu_field" name="height" aria-label="Update height"
-                    style="--l:55.8%; --t:52%; --w:20%; --h:2.7%">
-                <button type="submit" class="menu_field" aria-label="Submit height"
-                        style="--l:69%; --t:54.5%; --w:8%; --h:1.8%"></button>
-            </form>
-
-            <!-- Weight -->
-            <input class="menu_field" readonly aria-label="Current weight"
-                style="--l:55.9%; --t:61.1%; --w:20%; --h:2.6%">
-            <form class="menu_form">
-                <input class="menu_field" name="weight" aria-label="Update weight"
-                    style="--l:55.9%; --t:64.5%; --w:20%; --h:2.4%">
-                <button type="submit" class="menu_field" aria-label="Submit weight"
-                        style="--l:69%; --t:67%; --w:8%; --h:1.8%"></button>
-            </form>
-
-            <!-- Bottom buttons -->
-            <button type="button" class="menu_field" aria-label="Credits"
-                    style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
-            <form method="post" action="{% url 'core:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="menu_field" aria-label="Log out"
-                        style="--l:77.5%; --t:88.7%; --w:12%; --h:3.7%"></button>
-            </form>
-
-            <!-- Credits button (invisible, over the drawn Credits box) -->
-            <button type="button" id="creditsButton" class="menu_field" aria-label="View credits"
-                style="--l:65.5%; --t:88.7%; --w:10%; --h:3.7%"></button>
-
-            <!-- Credits screen, laid over the menu -->
-            <div id="creditsOverlay" class="credits_overlay hidden">
-                <img src="{% static 'img/credits.png' %}" alt="Credits" class="credits_png">
-                <button type="button" id="creditsExitButton" class="credits_exit_button" aria-label="Close credits"></button>
-            </div>
-
-            <!-- Music Control -->
-            <button type="button" id="musicBtn" class="menu_field" aria-label="Music" aria-pressed="true"
-                style="--l:40.8%; --t:77.7%; --w:3.8%; --h:3.2%"></button>
-            <button type="button" id="lbsBtn" class="menu_field" aria-label="Pounds" aria-pressed="true"
-                    style="--l:40.8%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
-            <button type="button" id="kgsBtn" class="menu_field" aria-label="Kilograms" aria-pressed="false"
-                    style="--l:46.9%; --t:84.2%; --w:3.8%; --h:3.3%"></button>
-        </div>
+        {% include "core/main_menu.html" %}
     </div>
 
-{%include "core/_repkin_modals.html" %}
-<script src="{% static 'js/unit_conversion.js' %}"></script>
-<script src="{% static 'js/main_menu.js' %}"></script>
-<script src="{% static 'core/arm_toggle.js' %}"></script>
-</body>
+    {% include "core/_repkin_modals.html" %}
 
+    <script src="{% static 'js/unit_conversion.js' %}"></script>
+    <script src="{% static 'js/main_menu.js' %}"></script>
+    <script src="{% static 'js/profile.js' %}"></script>
+    <script src="{% static 'core/arm_toggle.js' %}?v=7"></script>
+</body>
 </html>

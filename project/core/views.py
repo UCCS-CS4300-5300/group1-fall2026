@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.templatetags.static import static
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from firebase_admin import auth as firebase_auth
 
@@ -14,7 +15,21 @@ from .forms import RepkinSetupForm
 from .models import StarterItem
 from .models_repkin import Repkin
 
-from .repkin_looks import ARM_VERSIONS, next_arm_level, parse_arm_level
+from .repkin_looks import (
+    LEVEL_COUNT,
+    next_limb_level,
+    parse_limb_level,
+    sprite_for,
+    sprite_needs_vertical_offset,
+    sprite_urls_for,
+)
+from .repkin_progress import (
+    current_stats,
+    lifetime_stats,
+    next_unlock_message,
+    stat_bar_images,
+    unlocked_levels,
+)
 from .views_message import GREETING_PENDING_KEY
 from .exercises import EXERCISES
 
@@ -46,6 +61,14 @@ def account_creation(request):
 def get_repkin(user):
     repkin, _ = Repkin.objects.get_or_create(owner=user, defaults=DEFAULT_REPKIN)
     return repkin
+
+
+def allowed_levels(repkin):
+    """The saved arms and legs levels, lowered to what the stats have unlocked."""
+    unlocked = unlocked_levels(repkin)
+    arms_level = min(parse_limb_level(repkin.arms_level), unlocked["arms"])
+    legs_level = min(parse_limb_level(repkin.legs_level), unlocked["legs"])
+    return arms_level, legs_level, unlocked
 
 
 @require_POST
@@ -174,10 +197,18 @@ def logout_view(request):
 
 def render_home(request, repkin, setup_form, open_setup=False):
     items = StarterItem.objects.filter(is_active=True).order_by("title")
+    # Resolve the saved limb levels (only if still unlocked) and matching sprite.
+    arms_level, legs_level, _ = allowed_levels(repkin)
 
     context = {
         "items": items,
         "repkin": repkin,
+        "repkin_sprite": sprite_for(
+            repkin.color, arms_level, legs_level, repkin.is_tired
+        ),
+        "sprite_needs_vertical_offset": sprite_needs_vertical_offset(
+            repkin.color, legs_level
+        ),
         "setup_form": setup_form,
         "open_setup": open_setup,
         "show_welcome": True,
@@ -199,17 +230,72 @@ def render_home(request, repkin, setup_form, open_setup=False):
 @login_required
 def locker_room(request):
     repkin = get_repkin(request.user)
-    arm_level = parse_arm_level(request.GET.get("arms"))
+    # Prepare the saved sprite and available options for the locker room.
+    arms_level, legs_level, unlocked = allowed_levels(repkin)
     context = {
         "repkin": repkin,
         "setup_form": RepkinSetupForm(instance=repkin),
-        "arm_level": arm_level,
-        "arm_gif": ARM_VERSIONS[arm_level],
-        "next_arms": next_arm_level(arm_level),
-        # Every arm gif address, so the page can switch arms without reloading.
-        "arm_gif_urls": [static(path) for path in ARM_VERSIONS],
+        "arms_level": arms_level,
+        "legs_level": legs_level,
+        "repkin_sprite": sprite_for(
+            repkin.color, arms_level, legs_level, repkin.is_tired
+        ),
+        "sprite_needs_vertical_offset": sprite_needs_vertical_offset(
+            repkin.color, legs_level
+        ),
+        "next_arms": next_limb_level(arms_level),
+        "next_legs": next_limb_level(legs_level),
+        "sprite_gif_urls": {
+            arms: {legs: static(path) for legs, path in versions.items()}
+            for arms, versions in sprite_urls_for(repkin.color, repkin.is_tired).items()
+        },
+        "sprite_update_url": reverse("core:update_repkin_sprite"),
+        # Stat bar and evolution locks.
+        "current_stats": current_stats(repkin),
+        "stat_bar_images": stat_bar_images(repkin),
+        "max_arms_level": unlocked["arms"],
+        "max_legs_level": unlocked["legs"],
+        "arms_unlock_message": next_unlock_message("arms", unlocked["arms"]),
+        "legs_unlock_message": next_unlock_message("legs", unlocked["legs"]),
+        "lifetime_stats": lifetime_stats(request.user),
     }
     return render(request, "core/locker_room.html", context)
+
+
+# Validate and save the selected limb levels for the signed-in Repkin.
+@login_required
+@require_POST
+def update_repkin_sprite(request):
+    try:
+        arms_level = int(request.POST.get("arms_level", ""))
+        legs_level = int(request.POST.get("legs_level", ""))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Choose valid arm and leg versions."}, status=400)
+
+    if not (0 <= arms_level < LEVEL_COUNT and 0 <= legs_level < LEVEL_COUNT):
+        return JsonResponse({"error": "Choose valid arm and leg versions."}, status=400)
+
+    repkin = get_repkin(request.user)
+    unlocked = unlocked_levels(repkin)
+    if arms_level > unlocked["arms"] or legs_level > unlocked["legs"]:
+        return JsonResponse({"error": "That evolution is still locked."}, status=403)
+
+    repkin.arms_level = arms_level
+    repkin.legs_level = legs_level
+    repkin.save(update_fields=["arms_level", "legs_level"])
+    return JsonResponse({"arms_level": arms_level, "legs_level": legs_level})
+
+
+@login_required
+@require_POST
+def toggle_repkin_tired(request):
+    get_repkin(request.user).toggle_tired()
+    destination = (
+        "core:locker_room"
+        if request.POST.get("return_to") == "locker_room"
+        else "core:home"
+    )
+    return redirect(destination)
 
 
 #Information to be pulled and displayed in the main menu on both pages(Repkin Name and Username)#
@@ -226,7 +312,7 @@ def update_repkin_name(request):
         return JsonResponse({"error": "Enter 1-30 characters."}, status=400)
     repkin = get_repkin(request.user)
     repkin.name = name
-    repkin.save(update_fields=["name"])    
+    repkin.save(update_fields=["name"])
     return JsonResponse({"name": name})
 
 
@@ -280,4 +366,3 @@ def profile_data(request):
     except Exception:
         logger.exception("Profile storage failed for Firebase UID %s", uid)
         return JsonResponse({"error": "Profile storage is unavailable."}, status=503)
-    
