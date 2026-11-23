@@ -4,6 +4,15 @@
         return (level + 1) % count;
     }
 
+    // How many levels can be chosen. Missing or bad values mean all 4.
+    function readLevelCount(value) {
+        const maxLevel = parseInt(value, 10);
+        if (Number.isNaN(maxLevel) || maxLevel < 0) {
+            return 4;
+        }
+        return Math.min(maxLevel, 3) + 1;
+    }
+
     // Connect the arm and leg controls to saved sprite updates.
     function setupArmToggle(doc, win) {
         const armsLink = doc.getElementById("arms-arrow-btn");
@@ -18,6 +27,8 @@
 
         const spriteUrls = JSON.parse(urlData.textContent);
         const tokenInput = saveForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        const armsCount = readLevelCount(armsLink.dataset.maxArmLevel);
+        const legsCount = readLevelCount(legsLink.dataset.maxLegLevel);
         let armsLevel = parseInt(armsLink.dataset.armLevel, 10) || 0;
         let legsLevel = parseInt(legsLink.dataset.legLevel, 10) || 0;
         let saving = false;
@@ -39,8 +50,18 @@
 
         // Keep the non-JavaScript links pointed at the next levels.
         function updateControlLinks() {
-            armsLink.setAttribute("href", "?arms=" + nextLimbLevel(armsLevel, 4));
-            legsLink.setAttribute("href", "?legs=" + nextLimbLevel(legsLevel, 4));
+            armsLink.setAttribute("href", "?arms=" + nextLimbLevel(armsLevel, armsCount));
+            legsLink.setAttribute("href", "?legs=" + nextLimbLevel(legsLevel, legsCount));
+        }
+
+        // Read the server's error message, if it sent one.
+        async function errorMessage(response) {
+            try {
+                const data = await response.json();
+                return data.error;
+            } catch (error) {
+                return "";
+            }
         }
 
         // Save both levels together and update the displayed sprite on success.
@@ -66,18 +87,14 @@
                     credentials: "same-origin",
                 });
                 if (!response.ok) {
-                    throw new Error("The sprite selection could not be saved.");
+                    const message = await errorMessage(response);
+                    throw new Error(message || "The sprite selection could not be saved.");
                 }
 
                 const saved = await response.json();
                 armsLevel = saved.arms_level;
                 legsLevel = saved.legs_level;
                 sprite.src = spriteUrls[String(armsLevel)][String(legsLevel)];
-                const needsOffset =
-                    sprite.dataset.color === "yellow" ||
-                    (["blue", "green", "purple", "red"].includes(sprite.dataset.color) &&
-                        legsLevel === 0);
-                sprite.classList.toggle("non-green-no-legs", needsOffset);
                 armsLink.dataset.armLevel = String(armsLevel);
                 legsLink.dataset.legLevel = String(legsLevel);
                 updateSpriteAlignment();
@@ -96,16 +113,24 @@
             }
         }
 
-        // Save the next arm level while preserving the current leg level.
+        // Save the next unlocked arm level while keeping the current leg level.
         armsLink.addEventListener("click", function (event) {
             event.preventDefault();
-            saveLevels(nextLimbLevel(armsLevel, 4), legsLevel);
+            if (armsCount <= 1) {
+                status.textContent = armsLink.dataset.lockedMessage || "Arms are still locked.";
+                return;
+            }
+            saveLevels(nextLimbLevel(armsLevel, armsCount), legsLevel);
         });
 
-        // Save the next leg level while preserving the current arm level.
+        // Save the next unlocked leg level while keeping the current arm level.
         legsLink.addEventListener("click", function (event) {
             event.preventDefault();
-            saveLevels(armsLevel, nextLimbLevel(legsLevel, 4));
+            if (legsCount <= 1) {
+                status.textContent = legsLink.dataset.lockedMessage || "Legs are still locked.";
+                return;
+            }
+            saveLevels(armsLevel, nextLimbLevel(legsLevel, legsCount));
         });
 
         updateControlLinks();
@@ -113,7 +138,7 @@
     }
 
     if (typeof module !== "undefined" && module.exports) {
-        module.exports = { nextLimbLevel, setupArmToggle };
+        module.exports = { nextLimbLevel, readLevelCount, setupArmToggle };
     } else {
         // Running in the browser.
         document.addEventListener("DOMContentLoaded", function () {

@@ -23,6 +23,13 @@ from .repkin_looks import (
     sprite_needs_vertical_offset,
     sprite_urls_for,
 )
+from .repkin_progress import (
+    current_stats,
+    lifetime_stats,
+    next_unlock_message,
+    stat_bar_images,
+    unlocked_levels,
+)
 from .views_message import GREETING_PENDING_KEY
 from .exercises import EXERCISES
 
@@ -54,6 +61,14 @@ def account_creation(request):
 def get_repkin(user):
     repkin, _ = Repkin.objects.get_or_create(owner=user, defaults=DEFAULT_REPKIN)
     return repkin
+
+
+def allowed_levels(repkin):
+    """The saved arms and legs levels, lowered to what the stats have unlocked."""
+    unlocked = unlocked_levels(repkin)
+    arms_level = min(parse_limb_level(repkin.arms_level), unlocked["arms"])
+    legs_level = min(parse_limb_level(repkin.legs_level), unlocked["legs"])
+    return arms_level, legs_level, unlocked
 
 
 @require_POST
@@ -182,9 +197,8 @@ def logout_view(request):
 
 def render_home(request, repkin, setup_form, open_setup=False):
     items = StarterItem.objects.filter(is_active=True).order_by("title")
-    # Resolve the saved limb levels and matching sprite for the home page.
-    arms_level = parse_limb_level(repkin.arms_level)
-    legs_level = parse_limb_level(repkin.legs_level)
+    # Resolve the saved limb levels (only if still unlocked) and matching sprite.
+    arms_level, legs_level, _ = allowed_levels(repkin)
 
     context = {
         "items": items,
@@ -217,8 +231,7 @@ def render_home(request, repkin, setup_form, open_setup=False):
 def locker_room(request):
     repkin = get_repkin(request.user)
     # Prepare the saved sprite and available options for the locker room.
-    arms_level = parse_limb_level(repkin.arms_level)
-    legs_level = parse_limb_level(repkin.legs_level)
+    arms_level, legs_level, unlocked = allowed_levels(repkin)
     context = {
         "repkin": repkin,
         "setup_form": RepkinSetupForm(instance=repkin),
@@ -237,6 +250,14 @@ def locker_room(request):
             for arms, versions in sprite_urls_for(repkin.color, repkin.is_tired).items()
         },
         "sprite_update_url": reverse("core:update_repkin_sprite"),
+        # Stat bar and evolution locks.
+        "current_stats": current_stats(repkin),
+        "stat_bar_images": stat_bar_images(repkin),
+        "max_arms_level": unlocked["arms"],
+        "max_legs_level": unlocked["legs"],
+        "arms_unlock_message": next_unlock_message("arms", unlocked["arms"]),
+        "legs_unlock_message": next_unlock_message("legs", unlocked["legs"]),
+        "lifetime_stats": lifetime_stats(request.user),
     }
     return render(request, "core/locker_room.html", context)
 
@@ -255,6 +276,10 @@ def update_repkin_sprite(request):
         return JsonResponse({"error": "Choose valid arm and leg versions."}, status=400)
 
     repkin = get_repkin(request.user)
+    unlocked = unlocked_levels(repkin)
+    if arms_level > unlocked["arms"] or legs_level > unlocked["legs"]:
+        return JsonResponse({"error": "That evolution is still locked."}, status=403)
+
     repkin.arms_level = arms_level
     repkin.legs_level = legs_level
     repkin.save(update_fields=["arms_level", "legs_level"])
@@ -287,7 +312,7 @@ def update_repkin_name(request):
         return JsonResponse({"error": "Enter 1-30 characters."}, status=400)
     repkin = get_repkin(request.user)
     repkin.name = name
-    repkin.save(update_fields=["name"])    
+    repkin.save(update_fields=["name"])
     return JsonResponse({"name": name})
 
 
@@ -341,4 +366,3 @@ def profile_data(request):
     except Exception:
         logger.exception("Profile storage failed for Firebase UID %s", uid)
         return JsonResponse({"error": "Profile storage is unavailable."}, status=503)
-    

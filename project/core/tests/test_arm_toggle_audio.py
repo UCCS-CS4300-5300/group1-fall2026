@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.templatetags.static import static
 from django.urls import reverse
 
+from core.models_repkin import Repkin
 from core.repkin_looks import LEVEL_COUNT, sprite_urls_for
 
 LOCKER = "core:locker_room"
@@ -14,6 +15,11 @@ LOCKER = "core:locker_room"
 @pytest.fixture
 def logged_in_client(client, db):
     user = User.objects.create_user("flexer", password="pw12345!")
+    # Full strength and endurance unlock every arm and leg level, so these
+    # tests check the page controls, not the unlock rules.
+    Repkin.objects.create(
+        owner=user, mood="content", color="green", strength=300, endurance=300
+    )
     client.force_login(user)
     return client
 

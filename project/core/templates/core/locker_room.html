@@ -8,13 +8,24 @@
     <audio id="bg-music" src="{% static 'audio/ES_Before Chill - Yomoti.mp3' %}" autoplay loop></audio>
     <link rel="stylesheet" href="{% static 'css/home.css' %}?v=5">
     <link rel="stylesheet" href="{% static 'css/locker_room.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stat_bar.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/repkin_modals.css' %}">
     <link rel="stylesheet" href="{% static 'css/repkin_bubble.css' %}">
 </head>
 
 <body>
     <div class="stage">
-        <img src="{% static 'img/stat_bars.png' %}" alt="Status bar" class="stats-bar">
+        <!-- Stat bar: the empty bar, then one piece per lit segment.
+             Each piece is placed by its own numbers in css/stat_bar.css. Each stat fills on its own. -->
+        <div class="stats-bar" id="stat-bars">
+            <img src="{% static 'img/stat_bars/stat_bars_base.png' %}"
+                alt="Strength {{ current_stats.strength }}, Dexterity {{ current_stats.dexterity }}, Endurance {{ current_stats.endurance }}"
+                class="stat-bars-base" id="stat-bars-base">
+            {% for path in stat_bar_images %}
+            <img src="{% static path %}" alt="" aria-hidden="true" class="stat-segment">
+            {% endfor %}
+        </div>
+
         <img src="{% static 'img/locker_room.png' %}" alt="Locker room" class="room">
         <!-- Show the saved Repkin sprite in the locker room. -->
         <img src="{% static repkin_sprite %}" alt="Repkin"
@@ -35,14 +46,19 @@
             </button>
         </form>
 
-        <!-- Limb controls save the selected sprite without reloading the page. -->
+        <!-- Limb controls save the selected sprite without reloading the page.
+             They only cycle through levels the stats have unlocked. -->
         <a href="?arms={{ next_arms }}" id="arms-arrow-btn" class="stage_button"
             aria-label="Change Repkin arms"
             data-arm-level="{{ arms_level }}"
+            data-max-arm-level="{{ max_arms_level }}"
+            data-locked-message="{{ arms_unlock_message }}"
             style="display:block; --l:80.5%; --t:75.7%; --w:17.5%; --h:5.6%"></a>
         <a href="?legs={{ next_legs }}" id="legs-arrow-btn" class="stage_button"
             aria-label="Change Repkin legs"
             data-leg-level="{{ legs_level }}"
+            data-max-leg-level="{{ max_legs_level }}"
+            data-locked-message="{{ legs_unlock_message }}"
             style="display:block; --l:78%; --t:85.5%; --w:20%; --h:9%; z-index:6"></a>
         <!-- Provide the save token, status message, and sprite URLs to JavaScript. -->
         <form id="sprite-save-form" action="{{ sprite_update_url }}" hidden>{% csrf_token %}</form>
@@ -65,6 +81,6 @@
     <script src="{% static 'js/unit_conversion.js' %}"></script>
     <script src="{% static 'js/main_menu.js' %}"></script>
     <script src="{% static 'js/profile.js' %}"></script>
-    <script src="{% static 'core/arm_toggle.js' %}?v=6"></script>
+    <script src="{% static 'core/arm_toggle.js' %}?v=7"></script>
 </body>
 </html>

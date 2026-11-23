@@ -20,7 +20,12 @@ LOCKER = "core:locker_room"
 def logged_in_client(client, db):
     user = User.objects.create_user("flexer", password="pw12345!")
     # Start each test with an owned Repkin at its default sprite levels.
-    Repkin.objects.create(owner=user, mood="content", color="green")
+    # Full strength and endurance unlock every arm and leg level, so these
+    # tests check saving and drawing sprites, not the unlock rules
+    # (those are covered in test_stat_bar_evolutions.py).
+    Repkin.objects.create(
+        owner=user, mood="content", color="green", strength=300, endurance=300
+    )
     client.force_login(user)
     return client
 
